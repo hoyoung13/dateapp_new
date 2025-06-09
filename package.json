@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.7",
+    "jsonwebtoken": "^9.0.2",
+    "passport": "^0.7.0",
+    "passport-kakao": "^1.0.1",
+    "pg": "^8.13.1"
+  }
+}
