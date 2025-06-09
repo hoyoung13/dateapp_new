@@ -1,6 +1,7 @@
 // back/controllers/aicourseController.js
 
 const pool = require('../config/db');
+const openai = require('../services/openai');
 
 /**
  * AI 코스 추천 API
