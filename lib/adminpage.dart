@@ -11,6 +11,7 @@ class AdminPage extends StatelessWidget {
     _AdminMenuItem(title: "유저 관리", routeName: "/admin/users"),
     _AdminMenuItem(title: "게시글 관리", routeName: "/admin/posts"),
     _AdminMenuItem(title: "장소 승인 요청", routeName: "/admin/place-requests"),
+    _AdminMenuItem(title: "장소 신고 관리", routeName: "/admin/place-reports"),
     _AdminMenuItem(title: "문의 관리", routeName: "/admin/inquiries"),
     _AdminMenuItem(title: "코스 관리", routeName: "/admin/courses"),
     _AdminMenuItem(title: "찜 관리", routeName: "/admin/favorites"),

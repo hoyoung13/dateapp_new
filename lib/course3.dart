@@ -67,7 +67,7 @@ class _CourseCreationStep3PageState extends State<CourseCreationStep3Page>
       'hashtags': [], // 필요 시 hashtags 리스트 추가
       'with_who': widget.withWho,
       'purpose': widget.purpose,
-      'schedules': widget.schedules.map((s) => s.toJson()).toList(),
+      'schedules': widget.schedules.map((s) => s.toCourseJson()).toList(),
     };
 
     final url = Uri.parse(

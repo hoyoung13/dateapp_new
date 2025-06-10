@@ -21,13 +21,20 @@ class ScheduleItem {
   /// JSON 필드명이 실제 서버와 1:1 매칭되어야 합니다.
   factory ScheduleItem.fromJson(Map<String, dynamic> json) {
     return ScheduleItem(
-      placeId: json['id']?.toString(),
-      placeName: json['place_name'] as String?,
-      placeAddress: json['place_address'] as String?, // 서버가 보내는 키에 맞춤
-      placeImage: json['place_image'] as String?,
+      placeId: json['id']?.toString() ??
+          json['placeId']?.toString() ??
+          json['place_id']?.toString(),
+      // 백엔드에서 camelCase 혹은 snake_case 로 내려올 수 있으므로 두 경우 모두 처리
+      placeName: json['placeName'] as String? ?? json['place_name'] as String?,
+      placeAddress:
+          json['placeAddress'] as String? ?? json['place_address'] as String?,
+      placeImage:
+          json['placeImage'] as String? ?? json['place_image'] as String?,
 
-      travelInfo: json['travel_info'] as String?, // 만약 서버에서 내려준다 하면
-      maxDistance: json['max_distance'] as String?, // 같은 키 이름으로 내려오는지 확인
+      travelInfo:
+          json['travelInfo'] as String? ?? json['travel_info'] as String?,
+      maxDistance:
+          json['maxDistance'] as String? ?? json['max_distance'] as String?,
     );
   }
 
@@ -40,6 +47,19 @@ class ScheduleItem {
       'travel_info': travelInfo,
       'max_distance': maxDistance,
       // 추천 결과 보여줄 때 place_id 등은 서버에서 내려줍니다.
+    };
+  }
+
+  Map<String, dynamic> toCourseJson() {
+    return {
+      'placeId': placeId,
+      'placeName': placeName,
+      'placeAddress': placeAddress,
+      'placeImage': placeImage,
+      'main_category': mainCategory,
+      'sub_category': subCategory,
+      'travel_info': travelInfo,
+      'max_distance': maxDistance,
     };
   }
 

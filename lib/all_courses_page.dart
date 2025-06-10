@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:provider/provider.dart';
 import 'dart:io';
-import 'dart:convert';
+import 'coursedetail.dart';
 
 class AllCoursesPage extends StatefulWidget {
   const AllCoursesPage({Key? key}) : super(key: key);
@@ -19,6 +19,7 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
   // (1) 전체 코스 & 필터된 코스
   List<CourseModel> _allCourses = [];
   List<CourseModel> _filteredCourses = [];
+  final Map<int, Map<String, String>> _userProfiles = {};
 
   // (2) 현재 로딩/에러 상태
   bool _isLoading = true;
@@ -84,6 +85,7 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
             .toList();
         // 최초에는 필터 없이 전체를 보여줌
         _filteredCourses = List.from(_allCourses);
+        await _fetchUserProfiles(_allCourses.map((e) => e.userId).toSet());
       } else {
         _errorMessage = "코스 목록을 불러오지 못했습니다. (${resp.statusCode})";
       }
@@ -94,6 +96,29 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
     setState(() {
       _isLoading = false;
     });
+  }
+
+  Future<void> _fetchUserProfiles(Set<int> ids) async {
+    for (final id in ids) {
+      if (_userProfiles.containsKey(id)) continue;
+      try {
+        final resp = await http.get(Uri.parse('$BASE_URL/profile/$id'));
+        if (resp.statusCode == 200) {
+          final data = jsonDecode(resp.body)['user'];
+          String? img = data['profile_image'];
+          if (img != null && img.isNotEmpty && !img.startsWith('http')) {
+            img = '$BASE_URL$img';
+          }
+          _userProfiles[id] = {
+            'nickname': data['nickname'] ?? '',
+            'profileImage': img ?? ''
+          };
+        }
+      } catch (e) {
+        // ignore fetch errors
+      }
+    }
+    if (mounted) setState(() {});
   }
 
   /// (B) 필터링 로직: 장소, 누구와, 무엇을 필터
@@ -153,190 +178,232 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
 
   /// (D) 코스 카드 UI: 이미지를 포함한 썸네일 형태로 렌더링
   Widget _buildCourseCard(CourseModel course) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          // ── ★ 여기에서 mainAxisSize: MainAxisSize.min 을 추가 ──
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 1) 코스명
-            Text(
-              course.courseName,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+    return InkWell(
+      onTap: () {
+        final schedules = course.schedules.map((e) {
+          if (e is ScheduleItem) return e;
+          if (e is Map<String, dynamic>) {
+            return ScheduleItem.fromJson(e);
+          }
+          return ScheduleItem();
+        }).toList();
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => CourseDetailPage(
+              courseName: course.courseName,
+              courseDescription: course.courseDescription,
+              withWho: course.withWho,
+              purpose: course.purpose,
+              hashtags: course.hashtags,
+              schedules: schedules,
+            ),
+          ),
+        );
+      },
+      child: Card(
+        margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        elevation: 2,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            // ── ★ 여기에서 mainAxisSize: MainAxisSize.min 을 추가 ──
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 16,
+                    backgroundImage: _userProfiles[course.userId] != null &&
+                            _userProfiles[course.userId]!['profileImage']!
+                                .isNotEmpty
+                        ? NetworkImage(
+                            _userProfiles[course.userId]!['profileImage']!)
+                        : null,
+                    child: _userProfiles[course.userId] == null ||
+                            _userProfiles[course.userId]!['profileImage']!
+                                .isEmpty
+                        ? const Icon(Icons.person, size: 16)
+                        : null,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(_userProfiles[course.userId]?['nickname'] ?? ''),
+                ],
               ),
-            ),
-            const SizedBox(height: 4),
+              const SizedBox(height: 8),
+              // 1) 코스명
+              Text(
+                course.courseName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 4),
 
-            // 2) “누구와 / 무엇을” Chip
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: [
-                ...course.withWho.map((label) => Chip(
-                      label: Text(label),
-                      backgroundColor: Colors.pink.shade50,
-                      labelStyle: const TextStyle(fontSize: 12),
-                    )),
-                ...course.purpose.map((label) => Chip(
-                      label: Text(label),
-                      backgroundColor: Colors.yellow.shade50,
-                      labelStyle: const TextStyle(fontSize: 12),
-                    )),
-              ],
-            ),
-            const SizedBox(height: 8),
-
-            // 3) 해시태그 (있을 때만)
-            if (course.hashtags.isNotEmpty)
+              // 2) “누구와 / 무엇을” Chip
               Wrap(
                 spacing: 6,
                 runSpacing: 6,
-                children: course.hashtags.map((tag) {
-                  return Chip(
-                    label: Text('#$tag'),
-                    backgroundColor: Colors.green.shade50,
-                    labelStyle: const TextStyle(fontSize: 12),
-                  );
-                }).toList(),
+                children: [
+                  ...course.withWho.map((label) => Chip(
+                        label: Text(label),
+                        backgroundColor: Colors.pink.shade50,
+                        labelStyle: const TextStyle(fontSize: 12),
+                      )),
+                  ...course.purpose.map((label) => Chip(
+                        label: Text(label),
+                        backgroundColor: Colors.yellow.shade50,
+                        labelStyle: const TextStyle(fontSize: 12),
+                      )),
+                ],
               ),
-            if (course.hashtags.isNotEmpty) const SizedBox(height: 8),
+              const SizedBox(height: 8),
 
-            // 4) 일정(장소) 썸네일
-            if (course.schedules.isNotEmpty)
-              SizedBox(
-                // ── 100 →  90 으로 살짝만 줄였습니다.
-                //       높이를 조금만 줄여주면 아래 버튼과 겹치지 않습니다.
-                height: 90,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: course.schedules.length,
-                  itemBuilder: (context, index) {
-                    final sch = course.schedules[index];
-                    final String? placeName = sch.placeName;
-                    final String? placeImage = sch.placeImage;
+              // 3) 해시태그 (있을 때만)
+              if (course.hashtags.isNotEmpty)
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: course.hashtags.map((tag) {
+                    return Chip(
+                      label: Text('#$tag'),
+                      backgroundColor: Colors.green.shade50,
+                      labelStyle: const TextStyle(fontSize: 12),
+                    );
+                  }).toList(),
+                ),
+              if (course.hashtags.isNotEmpty) const SizedBox(height: 8),
 
-                    Widget thumbnail;
-                    if (placeImage != null && placeImage.isNotEmpty) {
-                      if (placeImage.startsWith('http')) {
-                        thumbnail = Image.network(
-                          placeImage,
-                          width: 80,
-                          height: 80,
-                          fit: BoxFit.cover,
-                          errorBuilder: (ctx, err, stack) => Container(
+              // 4) 일정(장소) 썸네일
+              if (course.schedules.isNotEmpty)
+                SizedBox(
+                  // ── 100 →  90 으로 살짝만 줄였습니다.
+                  //       높이를 조금만 줄여주면 아래 버튼과 겹치지 않습니다.
+                  height: 90,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: course.schedules.length,
+                    itemBuilder: (context, index) {
+                      final sch = course.schedules[index];
+                      final String? placeName = sch.placeName;
+                      final String? placeImage = sch.placeImage;
+
+                      Widget thumbnail;
+                      if (placeImage != null && placeImage.isNotEmpty) {
+                        if (placeImage.startsWith('http')) {
+                          thumbnail = Image.network(
+                            placeImage,
                             width: 80,
                             height: 80,
-                            color: Colors.grey.shade300,
-                            alignment: Alignment.center,
-                            child: const Icon(Icons.broken_image, size: 24),
-                          ),
-                        );
-                      } else if (placeImage.startsWith('/data/') ||
-                          placeImage.startsWith('file://')) {
-                        thumbnail = Image.file(
-                          File(placeImage),
-                          width: 80,
-                          height: 80,
-                          fit: BoxFit.cover,
-                          errorBuilder: (ctx, err, stack) => Container(
+                            fit: BoxFit.cover,
+                            errorBuilder: (ctx, err, stack) => Container(
+                              width: 80,
+                              height: 80,
+                              color: Colors.grey.shade300,
+                              alignment: Alignment.center,
+                              child: const Icon(Icons.broken_image, size: 24),
+                            ),
+                          );
+                        } else if (placeImage.startsWith('/data/') ||
+                            placeImage.startsWith('file://')) {
+                          thumbnail = Image.file(
+                            File(placeImage),
                             width: 80,
                             height: 80,
-                            color: Colors.grey.shade300,
-                            alignment: Alignment.center,
-                            child: const Icon(Icons.broken_image, size: 24),
-                          ),
-                        );
+                            fit: BoxFit.cover,
+                            errorBuilder: (ctx, err, stack) => Container(
+                              width: 80,
+                              height: 80,
+                              color: Colors.grey.shade300,
+                              alignment: Alignment.center,
+                              child: const Icon(Icons.broken_image, size: 24),
+                            ),
+                          );
+                        } else {
+                          // 상대 경로라면 BASE_URL 붙여서 네트워크로
+                          final fullUrl = '$BASE_URL$placeImage';
+                          thumbnail = Image.network(
+                            fullUrl,
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                            errorBuilder: (ctx, err, stack) => Container(
+                              width: 80,
+                              height: 80,
+                              color: Colors.grey.shade300,
+                              alignment: Alignment.center,
+                              child: const Icon(Icons.broken_image, size: 24),
+                            ),
+                          );
+                        }
                       } else {
-                        // 상대 경로라면 BASE_URL 붙여서 네트워크로
-                        final fullUrl = '$BASE_URL$placeImage';
-                        thumbnail = Image.network(
-                          fullUrl,
+                        thumbnail = Container(
                           width: 80,
                           height: 80,
-                          fit: BoxFit.cover,
-                          errorBuilder: (ctx, err, stack) => Container(
-                            width: 80,
-                            height: 80,
-                            color: Colors.grey.shade300,
-                            alignment: Alignment.center,
-                            child: const Icon(Icons.broken_image, size: 24),
-                          ),
+                          color: Colors.grey.shade300,
+                          alignment: Alignment.center,
+                          child:
+                              const Icon(Icons.image_not_supported, size: 24),
                         );
                       }
-                    } else {
-                      thumbnail = Container(
+
+                      return Container(
                         width: 80,
-                        height: 80,
-                        color: Colors.grey.shade300,
-                        alignment: Alignment.center,
-                        child: const Icon(Icons.image_not_supported, size: 24),
+                        margin: const EdgeInsets.only(right: 12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: thumbnail,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              placeName ?? '장소명 없음',
+                              style: const TextStyle(fontSize: 12),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ],
+                        ),
                       );
-                    }
-
-                    return Container(
-                      width: 80,
-                      margin: const EdgeInsets.only(right: 12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: thumbnail,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            placeName ?? '장소명 없음',
-                            style: const TextStyle(fontSize: 12),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              )
-            else
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12.0),
-                child: Text(
-                  '대표 장소: 일정 없음',
-                  style: TextStyle(color: Colors.grey.shade600),
-                ),
-              ),
-
-            const SizedBox(height: 8),
-
-            // 5) “상세보기 / 삭제” 버튼
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () {
-                    // 상세보기 로직
-                  },
-                  child: const Text('상세보기'),
-                ),
-                const SizedBox(width: 8),
-                TextButton(
-                  onPressed: () {
-                    // 삭제 다이얼로그 띄우기 등
-                  },
-                  child: const Text(
-                    '삭제',
-                    style: TextStyle(color: Colors.red),
+                    },
+                  ),
+                )
+              else
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                  child: Text(
+                    '대표 장소: 일정 없음',
+                    style: TextStyle(color: Colors.grey.shade600),
                   ),
                 ),
-              ],
-            ),
-          ],
+
+              const SizedBox(height: 8),
+
+              // 5) “상세보기 / 삭제” 버튼
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      // 삭제 다이얼로그 띄우기 등
+                    },
+                    child: const Text(
+                      '삭제',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

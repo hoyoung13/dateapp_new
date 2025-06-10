@@ -10,6 +10,8 @@ import 'review_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'review_write_page.dart';
+import 'constants.dart';
+import 'user_provider.dart';
 
 class PlaceInPageUIOnly extends StatefulWidget {
   // 다른 화면에서 'place_name', 'images', 'description', 'operating_hours', 'phone', 'address', 'main_category', 'sub_category', 'hashtags' 등 UI에 필요한 데이터를 넘긴다고 가정
@@ -526,7 +528,63 @@ class _PlaceInPageUIOnlyState extends State<PlaceInPageUIOnly>
             IconButton(
               icon: const Icon(Icons.flag, color: Colors.black),
               onPressed: () {
-                // TODO: 신고 기능
+                final TextEditingController reasonCtrl =
+                    TextEditingController();
+                showDialog(
+                  context: context,
+                  builder: (ctx) {
+                    return AlertDialog(
+                      title: const Text('장소 신고'),
+                      content: TextField(
+                        controller: reasonCtrl,
+                        decoration: const InputDecoration(
+                          labelText: '신고 사유',
+                          border: OutlineInputBorder(),
+                        ),
+                        maxLines: 3,
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          child: const Text('취소'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () async {
+                            final userId = context.read<UserProvider>().userId;
+                            if (userId == null) {
+                              Navigator.pop(ctx);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('로그인이 필요합니다.')));
+                              return;
+                            }
+                            final uri = Uri.parse(
+                                '$BASE_URL/places/${widget.payload['id']}/report');
+                            final resp = await http.post(
+                              uri,
+                              headers: {'Content-Type': 'application/json'},
+                              body: jsonEncode({
+                                'user_id': userId,
+                                'reason': reasonCtrl.text
+                              }),
+                            );
+                            Navigator.pop(ctx);
+                            if (resp.statusCode == 201) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text('신고가 접수되었습니다.')));
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content:
+                                          Text('신고 실패: ${resp.statusCode}')));
+                            }
+                          },
+                          child: const Text('신고'),
+                        ),
+                      ],
+                    );
+                  },
+                );
               },
             ),
           ],

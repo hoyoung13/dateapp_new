@@ -17,6 +17,8 @@ const reviewRoutes = require('./routes/reviewRoutes');
 const friRoutes = require('./routes/friendRoutes');
 const chatRoutes = require('./routes/chatRoomsRoutes');
 const aicourseRoutes = require('./routes/aicourseRoutes');
+const adminPlaceRoutes = require('./routes/adminPlaceRoutes');
+const placeReportRoutes = require('./routes/placeReportRoutes');
 
 dotenv.config(); // ✅ 환경 변수 로드
 
@@ -62,6 +64,8 @@ app.use('/api', reviewRoutes);
 app.use('/fri', friRoutes);
 app.use('/chat', chatRoutes);
 app.use('/aicourse', aicourseRoutes);
+app.use('/admin', adminPlaceRoutes);
+app.use('/', placeReportRoutes);
 
 // ✅ 서버 실행
 const PORT = process.env.PORT || 5000;
