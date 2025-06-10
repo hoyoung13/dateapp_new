@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'user_provider.dart';
+import 'constants.dart';
 
 class AdminPage extends StatelessWidget {
   const AdminPage({Key? key}) : super(key: key);
@@ -41,7 +42,8 @@ class AdminPage extends StatelessWidget {
             ),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
-              // 향후 각 관리 화면으로 연결될 라우트로 이동
+              print('▶ 장소 승인 요청 이동 시도');
+
               Navigator.pushNamed(context, menu.routeName);
             },
           );
