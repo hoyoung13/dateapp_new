@@ -62,7 +62,8 @@ const getUserProfile = async (req, res) => {
                 name: user.name ?? "",
                 birth_date: user.birth_date ?? "",
                 gender: user.gender ?? "",
-                profile_image: user.profile_image ? `/uploads/${user.profile_image}` : ""
+                //profile_image: user.profile_image ? `/uploads/${user.profile_image}` : ""
+                profile_image: user.profile_image || ""
             }
         });
         console.log("🔍 프로필 정보 반환:", {

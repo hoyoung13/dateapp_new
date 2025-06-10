@@ -1,6 +1,12 @@
 // back/controllers/placeController.js
 const pool = require('../config/db');
+const nodemailer = require('nodemailer');
 
+const transporter = nodemailer.createTransport({
+  sendmail: true,
+  newline: 'unix',
+  path: '/usr/sbin/sendmail'
+});
 const createPlace = async (req, res) => {
   console.log("▶️ [SERVER] req.body.price_info =", JSON.stringify(req.body.price_info, null, 2));
   console.log("▶️ [SERVER] req.body.operating_hours =", JSON.stringify(req.body.operating_hours, null, 2));
@@ -22,7 +28,8 @@ const createPlace = async (req, res) => {
       purpose,
       mood
     } = req.body;
-
+    const isAdmin = req.body.is_admin === true || req.body.isAdmin === true;
+    const isApproved = isAdmin ? true : false;
     // 문자열 형태일 때만 JSON.parse
     if (typeof operating_hours === "string") {
       try {
@@ -49,13 +56,14 @@ const createPlace = async (req, res) => {
      : null;
 
     const query = `
-      INSERT INTO place_info 
-        (user_id, place_name, description, address, phone, 
+       INSERT INTO place_info
+        (user_id, place_name, description, address, phone,
          main_category, sub_category, hashtags, images, operating_hours, price_info, with_who,
       purpose,
-      mood)
-      VALUES 
-        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+      mood,
+      is_approved)
+      VALUES
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
       RETURNING *;
     `;
 
@@ -74,12 +82,25 @@ const createPlace = async (req, res) => {
       priceInfoJson,
       with_who,
       purpose,
-      mood     // $11 (JSON 문자열 or null)
+      mood,
+      isApproved     // $11 (JSON 문자열 or null)
     ];
 
     console.log("▶️ [SERVER] INSERT values =", JSON.stringify(values, null, 2));
 
     const result = await pool.query(query, values);
+    if (!isApproved) {
+      try {
+        await transporter.sendMail({
+          from: 'no-reply@example.com',
+          to: 'ad1234@ad1234',
+          subject: 'New place suggestion',
+          text: `${place_name} has been submitted for approval.`
+        });
+      } catch (err) {
+        console.error('Email send failed:', err);
+      }
+    }
     res.status(201).json({ message: "Place created", place: result.rows[0] });
   } catch (error) {
     console.error("Error creating place:", error);
@@ -101,6 +122,7 @@ const getPlaces = async (req, res) => {
       LEFT JOIN review r  ON r.place_id = p.id
       -- 찜(즐겨찾기) 합계
       LEFT JOIN collection_places cp  ON cp.place_id = p.id
+      WHERE p.is_approved = true
       GROUP BY p.id
       ORDER BY p.id
     `;
@@ -129,7 +151,7 @@ const getPlaceById = async (req, res) => {
       FROM place_info p
       LEFT JOIN review r
         ON r.place_id = p.id
-      WHERE p.id = $1
+      WHERE p.id = $1 AND p.is_approved = true
       GROUP BY p.id;
     `;
     const result = await pool.query(sql, [id]);

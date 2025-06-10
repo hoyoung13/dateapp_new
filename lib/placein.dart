@@ -102,7 +102,7 @@ class _PlaceInPageState extends State<PlaceInPage>
       if (response.statusCode == 201) {
         debugPrint("✅ 장소 정보 저장 완료: ${response.body}");
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("장소 정보가 저장되었습니다.")),
+          const SnackBar(content: Text("장소가 제출되었습니다. 승인 대기 중입니다.")),
         );
         Navigator.pushReplacementNamed(context, '/home');
       } else {
