@@ -11,6 +11,7 @@ const boardRoutes = require("./routes/boardRoutes");
 const coupleRoutes = require("./routes/coupleRoutes");
 const profileRoutes = require("./routes/profileRoutes"); 
 const placeRoutes = require('./routes/placeRoutes');
+const adminPlaceRoutes = require('./routes/adminPlaceRoutes');
 const zzimRoutes = require('./routes/zzimRoutes');
 const courseRoutes = require('./routes/courseRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
@@ -55,6 +56,7 @@ app.use("/uploads", express.static("uploads"));
 app.use("/profile", profileRoutes); // 🔥 수정됨!
 
 app.use('/places', placeRoutes);
+app.use('/admin', adminPlaceRoutes);
 
 app.use('/zzim', zzimRoutes);
 app.use('/course', courseRoutes); 

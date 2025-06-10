@@ -37,6 +37,7 @@ import 'AICourse.dart';
 import 'AIcourse2.dart';
 import 'all_courses_page.dart';
 import 'adminpage.dart';
+import 'admin_place_requests_page.dart';
 import 'aichatscreen.dart';
 
 void main() async {
@@ -97,6 +98,7 @@ class MyApp extends StatelessWidget {
         '/AICourse': (context) => const AICoursePage(),
         '/allcourse': (context) => const AllCoursesPage(),
         '/admin': (context) => const AdminPage(),
+        '/admin/place-requests': (context) => const AdminPlaceRequestsPage(),
         '/aichat': (context) => const ChatScreen(),
 
         '/CategorySelectionPage': (context) =>

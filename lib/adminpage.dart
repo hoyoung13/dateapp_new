@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'user_provider.dart';
 
 class AdminPage extends StatelessWidget {
   const AdminPage({Key? key}) : super(key: key);
@@ -11,10 +13,18 @@ class AdminPage extends StatelessWidget {
     _AdminMenuItem(title: "문의 관리", routeName: "/admin/inquiries"),
     _AdminMenuItem(title: "코스 관리", routeName: "/admin/courses"),
     _AdminMenuItem(title: "찜 관리", routeName: "/admin/favorites"),
+    _AdminMenuItem(title: "장소 승인 요청", routeName: "/admin/place-requests"),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final isAdmin = context.read<UserProvider>().isAdmin;
+    if (!isAdmin) {
+      return const Scaffold(
+        body: Center(child: Text('관리자 전용 페이지입니다.')),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("관리자 대시보드"),
