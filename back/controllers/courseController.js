@@ -13,7 +13,10 @@ const createCourse = async (req, res) => {
     selected_date, // 예: '2025-03-21'
     with_who,      // 예: ['연인과', '친구와']
     purpose,       // 예: ['데이트', '맛집탐방']
-    schedules      // 배열: 각 일정 객체 { placeId, placeName, placeAddress, placeImage }
+    schedules,     // 배열: 각 일정 객체 { placeId, placeName, placeAddress, placeImage }
+    copied_from_id,
+    favorite_from_course_id // 기존 코스를 즐겨찾기한 경우 원본 코스 ID
+    // 배열: 각 일정 객체 { placeId, placeName, placeAddress, placeImage }
   } = req.body;
 
   try {
@@ -22,8 +25,8 @@ const createCourse = async (req, res) => {
 
     // courses 테이블에 코스 정보 저장
     const insertCourseQuery = `
-      INSERT INTO courses (user_id, course_name, course_description, hashtags, selected_date, with_who, purpose)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO courses (user_id, course_name, course_description, hashtags, selected_date, with_who, purpose, copied_from_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING id;
     `;
     const courseValues = [
@@ -33,7 +36,8 @@ const createCourse = async (req, res) => {
       hashtags,
       selected_date,
       with_who,
-      purpose
+      purpose,
+      copied_from_id || null
     ];
     const courseResult = await pool.query(insertCourseQuery, courseValues);
     const courseId = courseResult.rows[0].id;
@@ -57,7 +61,12 @@ const createCourse = async (req, res) => {
       ];
       await pool.query(insertScheduleQuery, scheduleValues);
     }
-
+    if (favorite_from_course_id) {
+      await pool.query(
+        'UPDATE courses SET favorite_count = COALESCE(favorite_count, 0) + 1 WHERE id = $1',
+        [favorite_from_course_id]
+      );
+    }
     // 모든 쿼리 성공 시 커밋
     await pool.query('COMMIT');
     res.status(201).json({ message: "코스 저장 성공", course_id: courseId });
@@ -71,14 +80,18 @@ const createCourse = async (req, res) => {
 const getCoursesByUser = async (req, res) => {
   try {
     const { user_id } = req.params;
+    const { originalOnly } = req.query;
 
     // 1) courses 테이블에서 해당 user_id의 코스 목록 조회
-    const coursesQuery = `
+    let coursesQuery = `
       SELECT *
       FROM courses
       WHERE user_id = $1
-      ORDER BY id DESC
     `;
+    if (originalOnly === 'true') {
+      coursesQuery += ' AND copied_from_id IS NULL';
+    }
+    coursesQuery += ' ORDER BY id DESC';
     const coursesResult = await pool.query(coursesQuery, [user_id]);
     const courses = coursesResult.rows;
 
@@ -127,7 +140,7 @@ const getAllCourses = async (req, res) => {
     //    - place: 장소 이름으로 검색 (코스 일정의 place_name)
     //    - with_who: ["연인과","친구와"] 처럼 배열 또는 단일 문자열
     //    - purpose: ["데이트","맛집탐방"] 처럼 배열 또는 단일 문자열
-    let { place, with_who, purpose } = req.query;
+    let { place, with_who, purpose, originalOnly } = req.query;
 
     // Express에서 query 파라미터가 단일일 때는 string, 복수일 때는 array로 넘어올 수 있음.
     // 배열 형태로 통일
@@ -155,7 +168,9 @@ const getAllCourses = async (req, res) => {
       courseValues.push(purpose);
       courseConditions.push(`purpose && $${courseValues.length}::text[]`);
     }
-
+    if (originalOnly === 'true') {
+      courseConditions.push('copied_from_id IS NULL');
+    }
     // (3) courses 테이블에서 필터된 코스 먼저 조회 (일정 정보 제외)
     let courseQuery = `
       SELECT
@@ -166,7 +181,9 @@ const getAllCourses = async (req, res) => {
         hashtags,
         selected_date,
         with_who,
-        purpose
+        purpose,
+        share_count,
+        favorite_count
       FROM courses
     `;
 
@@ -260,6 +277,8 @@ const getAllCourses = async (req, res) => {
       withWho: c.with_who,
       purpose: c.purpose,
       schedules: schedulesByCourse[c.id] || [],
+      shareCount: c.share_count || 0,
+      favoriteCount: c.favorite_count || 0,
     }));
 
     return res.status(200).json({ courses: merged });

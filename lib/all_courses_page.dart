@@ -75,7 +75,7 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
     });
 
     try {
-      final uri = Uri.parse("$BASE_URL/course/allcourse");
+      final uri = Uri.parse("$BASE_URL/course/allcourse?originalOnly=true");
       // 예시: GET /course/all 에서 { "courses": [...] } 형태로 내려온다고 가정
       final resp = await http.get(uri);
       if (resp.statusCode == 200) {
@@ -140,9 +140,8 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
         final List<dynamic> courses = data['courses'] ?? [];
         setState(() {
           _myCourseIds = courses
-              .map((e) => e['id'] is int
-                  ? e['id'] as int
-                  : int.parse(e['id'].toString()))
+              .map((e) => e['copied_from_id'] ?? e['id'])
+              .map((id) => id is int ? id as int : int.parse(id.toString()))
               .toSet();
         });
       }
@@ -164,6 +163,8 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
       'selected_date': course.selectedDate?.toIso8601String(),
       'with_who': course.withWho,
       'purpose': course.purpose,
+      'copied_from_id': course.id,
+      'favorite_from_course_id': course.id,
       'schedules': course.schedules
           .map((s) => s.toCourseJson()) // ScheduleItem → Map<String, dynamic>
           .toList(),
@@ -258,7 +259,7 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
                                 ),
                                 title: Text(f['nickname'] ?? ''),
                                 onTap: () async {
-                                  final resp = await http.post(
+                                  final createResp = await http.post(
                                     Uri.parse('$BASE_URL/chat/rooms/1on1'),
                                     headers: {
                                       'Content-Type': 'application/json'
@@ -266,10 +267,10 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
                                     body: json.encode(
                                         {'userA': userId, 'userB': f['id']}),
                                   );
-                                  if (resp.statusCode == 200) {
+                                  if (createResp.statusCode == 200) {
                                     final roomId =
-                                        json.decode(resp.body)['roomId'];
-                                    await http.post(
+                                        json.decode(createResp.body)['roomId'];
+                                    final sendResp = await http.post(
                                       Uri.parse(
                                           '$BASE_URL/chat/rooms/$roomId/messages'),
                                       headers: {
@@ -281,7 +282,23 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
                                         'course_id': courseId,
                                       }),
                                     );
-                                    Navigator.of(ctx).pop();
+                                    if (sendResp.statusCode == 200) {
+                                      Navigator.of(ctx).pop();
+                                    } else {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                            content: Text('코스 공유 실패')),
+                                      );
+                                      print(
+                                          'Failed to send course: ${sendResp.statusCode} ${sendResp.body}');
+                                    }
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('코스 공유 실패')),
+                                    );
+                                    print(
+                                        'Failed to create room: ${createResp.statusCode} ${createResp.body}');
                                   }
                                 },
                               );
@@ -308,7 +325,7 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
                                 title: Text(r['room_name'] ?? ''),
                                 onTap: () async {
                                   final roomId = r['room_id'];
-                                  await http.post(
+                                  final resp = await http.post(
                                     Uri.parse(
                                         '$BASE_URL/chat/rooms/$roomId/messages'),
                                     headers: {
@@ -320,7 +337,15 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
                                       'course_id': courseId,
                                     }),
                                   );
-                                  Navigator.of(ctx).pop();
+                                  if (resp.statusCode == 200) {
+                                    Navigator.of(ctx).pop();
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('코스 공유 실패')),
+                                    );
+                                    print(
+                                        'Failed to share course to room $roomId: ${resp.statusCode} ${resp.body}');
+                                  }
                                 },
                               );
                             },
@@ -604,41 +629,38 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.favorite_border, color: Colors.grey),
-                      Text('${course.favoriteCount}',
-                          style: const TextStyle(fontSize: 12)),
+                      IconButton(
+                        icon: const Icon(Icons.share),
+                        onPressed: () => _showShareDialog(course.id),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${course.shareCount}',
+                        style: const TextStyle(fontSize: 12),
+                      ),
                     ],
                   ),
                   const SizedBox(width: 16),
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.share, color: Colors.grey),
-                      Text('${course.shareCount}',
-                          style: const TextStyle(fontSize: 12)),
+                      IconButton(
+                        icon: Icon(
+                          _myCourseIds.contains(course.id)
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          color: _myCourseIds.contains(course.id)
+                              ? Colors.red
+                              : null,
+                        ),
+                        onPressed: () => _toggleFavorite(course),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${course.favoriteCount}',
+                        style: const TextStyle(fontSize: 12),
+                      ),
                     ],
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 8),
-              // 5) “상세보기 / 삭제” 버튼
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.share),
-                    onPressed: () => _showShareDialog(course.id),
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      _myCourseIds.contains(course.id)
-                          ? Icons.favorite
-                          : Icons.favorite_border,
-                      color:
-                          _myCourseIds.contains(course.id) ? Colors.red : null,
-                    ),
-                    onPressed: () => _toggleFavorite(course),
                   ),
                 ],
               ),

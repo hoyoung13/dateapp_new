@@ -115,6 +115,12 @@ const postMessage = async (req, res) => {
   
     try {
       const { rows } = await pool.query(query, params);
+      if (type === 'course' && course_id) {
+        await pool.query(
+          'UPDATE courses SET share_count = COALESCE(share_count,0) + 1 WHERE id = $1',
+          [course_id]
+        );
+      }
       res.status(201).json({ message: rows[0] });
     } catch (err) {
       console.error("postMessage error:", err);
