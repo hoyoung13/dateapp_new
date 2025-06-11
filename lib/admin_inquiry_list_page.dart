@@ -28,6 +28,11 @@ class _AdminInquiryListPageState extends State<AdminInquiryListPage> {
           if (snapshot.connectionState != ConnectionState.done) {
             return const Center(child: CircularProgressIndicator());
           }
+          if (snapshot.hasError) {
+            print('문의 목록 로딩 오류: ${snapshot.error}');
+            return const Center(child: Text('문의 데이터를 불러오는데 실패했습니다.'));
+          }
+
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text('문의가 없습니다.'));
           }

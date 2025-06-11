@@ -37,14 +37,21 @@ class Inquiry {
 class InquiryService {
   static Future<void> createInquiry(
       int userId, String title, String content) async {
-    await http.post(
+    final response = await http.post(
       Uri.parse('$BASE_URL/inquiries'),
       headers: {
         'Content-Type': 'application/json',
-        'user_id': '$userId', // 이게 누락되어 있었음
+        'user_id': '$userId',
       },
       body: jsonEncode({'user_id': userId, 'title': title, 'content': content}),
     );
+
+    if (response.statusCode != 200) {
+      print('❌ 문의 등록 실패');
+      print('응답 코드: ${response.statusCode}');
+      print('응답 본문: ${response.body}');
+      throw Exception('Failed to create inquiry');
+    }
   }
 
   static Future<List<Inquiry>> fetchInquiries() async {
@@ -52,14 +59,19 @@ class InquiryService {
       Uri.parse('$BASE_URL/admin/inquiries'),
       headers: {'Content-Type': 'application/json', 'user_id': '8'},
     );
+
     if (resp.statusCode == 200) {
       final data = jsonDecode(resp.body) as Map<String, dynamic>;
       final list = data['inquiries'] as List<dynamic>;
       return list
           .map((e) => Inquiry.fromJson(e as Map<String, dynamic>))
           .toList();
+    } else {
+      print('❌ 문의 목록 조회 실패');
+      print('응답 코드: ${resp.statusCode}');
+      print('응답 본문: ${resp.body}');
+      throw Exception('Failed to fetch inquiries');
     }
-    throw Exception('failed');
   }
 
   static Future<Inquiry> fetchInquiry(int id) async {
@@ -67,19 +79,31 @@ class InquiryService {
       Uri.parse('$BASE_URL/admin/inquiries/$id'),
       headers: {'Content-Type': 'application/json', 'user_id': '8'},
     );
+
     if (resp.statusCode == 200) {
       final data = jsonDecode(resp.body) as Map<String, dynamic>;
       return Inquiry.fromJson(data['inquiry']);
+    } else {
+      print('❌ 문의 상세 조회 실패');
+      print('응답 코드: ${resp.statusCode}');
+      print('응답 본문: ${resp.body}');
+      throw Exception('Failed to fetch inquiry');
     }
-    throw Exception('failed');
   }
 
   static Future<void> answerInquiry(
       int id, int answererId, String answer) async {
-    await http.post(
+    final resp = await http.post(
       Uri.parse('$BASE_URL/admin/inquiries/$id/answer'),
       headers: {'Content-Type': 'application/json', 'user_id': '8'},
       body: jsonEncode({'answer': answer, 'answerer_id': answererId}),
     );
+
+    if (resp.statusCode != 200) {
+      print('❌ 문의 답변 등록 실패');
+      print('응답 코드: ${resp.statusCode}');
+      print('응답 본문: ${resp.body}');
+      throw Exception('Failed to submit answer');
+    }
   }
 }

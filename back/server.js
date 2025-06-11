@@ -19,6 +19,7 @@ const chatRoutes = require('./routes/chatRoomsRoutes');
 const aicourseRoutes = require('./routes/aicourseRoutes');
 const adminPlaceRoutes = require('./routes/adminPlaceRoutes');
 const placeReportRoutes = require('./routes/placeReportRoutes');
+const inquiryRoutes = require('./routes/inquiryRoutes');
 
 dotenv.config(); // ✅ 환경 변수 로드
 
@@ -52,6 +53,7 @@ if (!userRoutes || Object.keys(userRoutes).length === 0) {
 app.use("/boards", boardRoutes);
 app.use("/couple", coupleRoutes);
 app.use("/uploads", express.static("uploads"));
+app.use('/', inquiryRoutes);
 
 // ✅ 프로필 관련 API 라우트 등록
 app.use("/profile", profileRoutes); // 🔥 수정됨!
