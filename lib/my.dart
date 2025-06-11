@@ -6,6 +6,7 @@ import 'couple.dart';
 import 'place.dart';
 import 'dart:io';
 import 'fri.dart';
+import 'inquiry_page.dart';
 
 class MyPage extends StatefulWidget {
   const MyPage({super.key});
@@ -176,7 +177,18 @@ class _MyPageState extends State<MyPage> {
                     );
                   },
                 ),
-                _buildListTile("문의 하기", Icons.history),
+                _buildListTile(
+                  "문의 하기",
+                  Icons.history,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const InquiryPage(),
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
           ),
