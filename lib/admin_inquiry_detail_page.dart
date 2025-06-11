@@ -19,7 +19,9 @@ class _AdminInquiryDetailPageState extends State<AdminInquiryDetailPage> {
   @override
   void initState() {
     super.initState();
-    _future = InquiryService.fetchInquiry(widget.inquiryId);
+    final adminId =
+        Provider.of<UserProvider>(context, listen: false).userId ?? 8;
+    _future = InquiryService.fetchInquiry(widget.inquiryId, adminId);
   }
 
   Future<void> _submit() async {

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'constants.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Inquiry {
   final int id;
@@ -54,10 +55,10 @@ class InquiryService {
     }
   }
 
-  static Future<List<Inquiry>> fetchInquiries() async {
+  static Future<List<Inquiry>> fetchInquiries(int adminId) async {
     final resp = await http.get(
       Uri.parse('$BASE_URL/admin/inquiries'),
-      headers: {'Content-Type': 'application/json', 'user_id': '8'},
+      headers: {'Content-Type': 'application/json', 'user_id': '$adminId'},
     );
 
     if (resp.statusCode == 200) {
@@ -74,10 +75,10 @@ class InquiryService {
     }
   }
 
-  static Future<Inquiry> fetchInquiry(int id) async {
+  static Future<Inquiry> fetchInquiry(int id, int adminId) async {
     final resp = await http.get(
       Uri.parse('$BASE_URL/admin/inquiries/$id'),
-      headers: {'Content-Type': 'application/json', 'user_id': '8'},
+      headers: {'Content-Type': 'application/json', 'user_id': '$adminId'},
     );
 
     if (resp.statusCode == 200) {
@@ -91,12 +92,11 @@ class InquiryService {
     }
   }
 
-  static Future<void> answerInquiry(
-      int id, int answererId, String answer) async {
+  static Future<void> answerInquiry(int id, int adminId, String answer) async {
     final resp = await http.post(
       Uri.parse('$BASE_URL/admin/inquiries/$id/answer'),
-      headers: {'Content-Type': 'application/json', 'user_id': '8'},
-      body: jsonEncode({'answer': answer, 'answerer_id': answererId}),
+      headers: {'Content-Type': 'application/json', 'user_id': '$adminId'},
+      body: jsonEncode({'answer': answer, 'answerer_id': adminId}),
     );
 
     if (resp.statusCode != 200) {

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'inquiry_service.dart';
 import 'admin_inquiry_detail_page.dart';
+import 'package:provider/provider.dart';
+import 'user_provider.dart';
 
 class AdminInquiryListPage extends StatefulWidget {
   const AdminInquiryListPage({Key? key}) : super(key: key);
@@ -15,7 +17,9 @@ class _AdminInquiryListPageState extends State<AdminInquiryListPage> {
   @override
   void initState() {
     super.initState();
-    _future = InquiryService.fetchInquiries();
+    final adminId =
+        Provider.of<UserProvider>(context, listen: false).userId ?? 8;
+    _future = InquiryService.fetchInquiries(adminId);
   }
 
   @override
@@ -53,7 +57,11 @@ class _AdminInquiryListPageState extends State<AdminInquiryListPage> {
                     ),
                   );
                   setState(() {
-                    _future = InquiryService.fetchInquiries();
+                    final adminId =
+                        Provider.of<UserProvider>(context, listen: false)
+                                .userId ??
+                            8;
+                    _future = InquiryService.fetchInquiries(adminId);
                   });
                 },
               );

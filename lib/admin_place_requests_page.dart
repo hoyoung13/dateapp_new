@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'constants.dart';
+import 'package:provider/provider.dart';
+import 'user_provider.dart';
 
 class AdminPlaceRequestsPage extends StatefulWidget {
   const AdminPlaceRequestsPage({Key? key}) : super(key: key);
@@ -13,18 +15,22 @@ class AdminPlaceRequestsPage extends StatefulWidget {
 
 class _AdminPlaceRequestsPageState extends State<AdminPlaceRequestsPage> {
   Future<List<dynamic>>? _future;
+  int? _adminId;
 
   @override
   void initState() {
     super.initState();
+    _adminId = Provider.of<UserProvider>(context, listen: false).userId ?? 8;
+
     _future = _loadRequests();
   }
 
   Future<List<dynamic>> _loadRequests() async {
     final uri = Uri.parse('$BASE_URL/admin/place-requests');
-    final resp = await http.get(uri,
-        headers: {'Content-Type': 'application/json', 'user_id': '8'});
-
+    final resp = await http.get(uri, headers: {
+      'Content-Type': 'application/json',
+      'user_id': '${_adminId}'
+    });
     // 🔍 응답 상태코드와 본문 출력
     print('응답 상태 코드: ${resp.statusCode}');
     print('응답 본문: ${resp.body}');
@@ -46,8 +52,10 @@ class _AdminPlaceRequestsPageState extends State<AdminPlaceRequestsPage> {
 
   Future<void> _approve(int id) async {
     final uri = Uri.parse('$BASE_URL/admin/place-requests/$id/approve');
-    await http.post(uri,
-        headers: {'Content-Type': 'application/json', 'user_id': '8'});
+    await http.post(uri, headers: {
+      'Content-Type': 'application/json',
+      'user_id': '${_adminId}'
+    });
     setState(() {
       _future = _loadRequests();
     });
@@ -55,8 +63,10 @@ class _AdminPlaceRequestsPageState extends State<AdminPlaceRequestsPage> {
 
   Future<void> _reject(int id) async {
     final uri = Uri.parse('$BASE_URL/admin/place-requests/$id/reject');
-    await http.post(uri,
-        headers: {'Content-Type': 'application/json', 'user_id': '8'});
+    await http.post(uri, headers: {
+      'Content-Type': 'application/json',
+      'user_id': '${_adminId}'
+    });
     setState(() {
       _future = _loadRequests();
     });
