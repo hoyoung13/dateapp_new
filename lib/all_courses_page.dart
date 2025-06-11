@@ -20,6 +20,7 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
   List<CourseModel> _allCourses = [];
   List<CourseModel> _filteredCourses = [];
   final Map<int, Map<String, String>> _userProfiles = {};
+  Set<int> _myCourseIds = {}; // 내 코스 ID 목록
 
   // (2) 현재 로딩/에러 상태
   bool _isLoading = true;
@@ -63,6 +64,7 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
     _withWhoSelected = List<bool>.filled(_withWhoOptions.length, false);
     _purposeSelected = List<bool>.filled(_purposeOptions.length, false);
     _fetchAllCourses();
+    _fetchMyCourses();
   }
 
   /// (A) 백엔드에서 모든 코스 데이터 가져오기
@@ -80,9 +82,14 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
         final decoded = json.decode(resp.body) as Map<String, dynamic>;
         final rawList = decoded['courses'] as List<dynamic>? ?? [];
 
-        _allCourses = rawList
-            .map((e) => CourseModel.fromJson(e as Map<String, dynamic>))
-            .toList();
+        _allCourses = rawList.map((e) {
+          final map = e as Map<String, dynamic>;
+          // API가 snake_case 또는 camelCase로 보낼 수 있으므로 둘 다 처리
+          map['shareCount'] = map['shareCount'] ?? map['share_count'] ?? 0;
+          map['favoriteCount'] =
+              map['favoriteCount'] ?? map['favorite_count'] ?? 0;
+          return CourseModel.fromJson(map);
+        }).toList();
         // 최초에는 필터 없이 전체를 보여줌
         _filteredCourses = List.from(_allCourses);
         await _fetchUserProfiles(_allCourses.map((e) => e.userId).toSet());
@@ -119,6 +126,216 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
       }
     }
     if (mounted) setState(() {});
+  }
+
+  Future<void> _fetchMyCourses() async {
+    final userId = Provider.of<UserProvider>(context, listen: false).userId;
+    if (userId == null) return;
+    try {
+      final resp = await http.get(
+        Uri.parse('$BASE_URL/course/user_courses/$userId'),
+      );
+      if (resp.statusCode == 200) {
+        final data = json.decode(resp.body) as Map<String, dynamic>;
+        final List<dynamic> courses = data['courses'] ?? [];
+        setState(() {
+          _myCourseIds = courses
+              .map((e) => e['id'] is int
+                  ? e['id'] as int
+                  : int.parse(e['id'].toString()))
+              .toSet();
+        });
+      }
+    } catch (e) {
+      // ignore errors
+    }
+  }
+
+  Future<void> _toggleFavorite(CourseModel course) async {
+    final userId = Provider.of<UserProvider>(context, listen: false).userId;
+    if (userId == null) return;
+    if (_myCourseIds.contains(course.id)) return;
+    final url = Uri.parse('$BASE_URL/course/courses');
+    final body = {
+      'user_id': userId,
+      'course_name': course.courseName,
+      'course_description': course.courseDescription,
+      'hashtags': course.hashtags,
+      'selected_date': course.selectedDate?.toIso8601String(),
+      'with_who': course.withWho,
+      'purpose': course.purpose,
+      'schedules': course.schedules
+          .map((s) => s.toCourseJson()) // ScheduleItem → Map<String, dynamic>
+          .toList(),
+    };
+    try {
+      final resp = await http.post(url,
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode(body));
+      if (resp.statusCode == 201) {
+        setState(() {
+          _myCourseIds.add(course.id);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('내 코스에 저장되었습니다.')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('저장 실패: ${resp.statusCode}')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('오류: $e')),
+      );
+    }
+  }
+
+  void _showShareDialog(int courseId) {
+    final userId = Provider.of<UserProvider>(context, listen: false).userId;
+    if (userId == null) return;
+
+    Future<List<dynamic>> fetchFriends() async {
+      final resp = await http.get(Uri.parse('$BASE_URL/fri/friends/$userId'));
+      if (resp.statusCode == 200) {
+        final data = json.decode(resp.body);
+        return data['friends'] as List<dynamic>;
+      }
+      return [];
+    }
+
+    Future<List<dynamic>> fetchRooms() async {
+      final resp =
+          await http.get(Uri.parse('$BASE_URL/chat/rooms/user/$userId'));
+      if (resp.statusCode == 200) {
+        final data = json.decode(resp.body);
+        return data['rooms'] as List<dynamic>;
+      }
+      return [];
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return SizedBox(
+          height: 400,
+          child: DefaultTabController(
+            length: 2,
+            child: Column(
+              children: [
+                const TabBar(tabs: [Tab(text: '친구'), Tab(text: '채팅')]),
+                Expanded(
+                  child: TabBarView(
+                    children: [
+                      FutureBuilder<List<dynamic>>(
+                        future: fetchFriends(),
+                        builder: (c, snap) {
+                          if (snap.connectionState != ConnectionState.done) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          }
+                          final friends = snap.data ?? [];
+                          if (friends.isEmpty) {
+                            return const Center(child: Text('친구가 없습니다.'));
+                          }
+                          return ListView.builder(
+                            itemCount: friends.length,
+                            itemBuilder: (c, i) {
+                              final f = friends[i];
+                              return ListTile(
+                                leading: CircleAvatar(
+                                  backgroundImage: f['profile_image'] != null &&
+                                          f['profile_image']
+                                              .toString()
+                                              .isNotEmpty
+                                      ? NetworkImage(f['profile_image'])
+                                      : null,
+                                  child: (f['profile_image'] == null ||
+                                          f['profile_image'].toString().isEmpty)
+                                      ? const Icon(Icons.person)
+                                      : null,
+                                ),
+                                title: Text(f['nickname'] ?? ''),
+                                onTap: () async {
+                                  final resp = await http.post(
+                                    Uri.parse('$BASE_URL/chat/rooms/1on1'),
+                                    headers: {
+                                      'Content-Type': 'application/json'
+                                    },
+                                    body: json.encode(
+                                        {'userA': userId, 'userB': f['id']}),
+                                  );
+                                  if (resp.statusCode == 200) {
+                                    final roomId =
+                                        json.decode(resp.body)['roomId'];
+                                    await http.post(
+                                      Uri.parse(
+                                          '$BASE_URL/chat/rooms/$roomId/messages'),
+                                      headers: {
+                                        'Content-Type': 'application/json'
+                                      },
+                                      body: json.encode({
+                                        'sender_id': userId,
+                                        'type': 'course',
+                                        'course_id': courseId,
+                                      }),
+                                    );
+                                    Navigator.of(ctx).pop();
+                                  }
+                                },
+                              );
+                            },
+                          );
+                        },
+                      ),
+                      FutureBuilder<List<dynamic>>(
+                        future: fetchRooms(),
+                        builder: (c, snap) {
+                          if (snap.connectionState != ConnectionState.done) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          }
+                          final rooms = snap.data ?? [];
+                          if (rooms.isEmpty) {
+                            return const Center(child: Text('채팅방이 없습니다.'));
+                          }
+                          return ListView.builder(
+                            itemCount: rooms.length,
+                            itemBuilder: (c, i) {
+                              final r = rooms[i];
+                              return ListTile(
+                                title: Text(r['room_name'] ?? ''),
+                                onTap: () async {
+                                  final roomId = r['room_id'];
+                                  await http.post(
+                                    Uri.parse(
+                                        '$BASE_URL/chat/rooms/$roomId/messages'),
+                                    headers: {
+                                      'Content-Type': 'application/json'
+                                    },
+                                    body: json.encode({
+                                      'sender_id': userId,
+                                      'type': 'course',
+                                      'course_id': courseId,
+                                    }),
+                                  );
+                                  Navigator.of(ctx).pop();
+                                },
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   /// (B) 필터링 로직: 장소, 누구와, 무엇을 필터
@@ -180,13 +397,7 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
   Widget _buildCourseCard(CourseModel course) {
     return InkWell(
       onTap: () {
-        final schedules = course.schedules.map((e) {
-          if (e is ScheduleItem) return e;
-          if (e is Map<String, dynamic>) {
-            return ScheduleItem.fromJson(e);
-          }
-          return ScheduleItem();
-        }).toList();
+        final schedules = List<ScheduleItem>.from(course.schedules);
 
         Navigator.push(
           context,
@@ -386,19 +597,48 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
                 ),
 
               const SizedBox(height: 8),
+              // 공유/즐겨찾기 카운트 표시
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.favorite_border, color: Colors.grey),
+                      Text('${course.favoriteCount}',
+                          style: const TextStyle(fontSize: 12)),
+                    ],
+                  ),
+                  const SizedBox(width: 16),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.share, color: Colors.grey),
+                      Text('${course.shareCount}',
+                          style: const TextStyle(fontSize: 12)),
+                    ],
+                  ),
+                ],
+              ),
 
+              const SizedBox(height: 8),
               // 5) “상세보기 / 삭제” 버튼
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  TextButton(
-                    onPressed: () {
-                      // 삭제 다이얼로그 띄우기 등
-                    },
-                    child: const Text(
-                      '삭제',
-                      style: TextStyle(color: Colors.red),
+                  IconButton(
+                    icon: const Icon(Icons.share),
+                    onPressed: () => _showShareDialog(course.id),
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      _myCourseIds.contains(course.id)
+                          ? Icons.favorite
+                          : Icons.favorite_border,
+                      color:
+                          _myCourseIds.contains(course.id) ? Colors.red : null,
                     ),
+                    onPressed: () => _toggleFavorite(course),
                   ),
                 ],
               ),

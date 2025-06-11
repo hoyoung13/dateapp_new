@@ -127,7 +127,8 @@ class CourseModel {
   final List<String> withWho;
   final List<String> purpose;
   final List<ScheduleItem> schedules;
-
+  final int shareCount;
+  final int favoriteCount;
   CourseModel({
     required this.id,
     required this.userId,
@@ -138,6 +139,8 @@ class CourseModel {
     required this.withWho,
     required this.purpose,
     required this.schedules,
+    this.shareCount = 0,
+    this.favoriteCount = 0,
   });
 
   factory CourseModel.fromJson(Map<String, dynamic> json) {
@@ -157,7 +160,8 @@ class CourseModel {
     final rawHashtags = json['hashtags'] as List<dynamic>?;
     final rawWithWho = json['withWho'] as List<dynamic>?;
     final rawPurpose = json['purpose'] as List<dynamic>?;
-
+    final rawShareCount = json['shareCount'] ?? json['share_count'];
+    final rawFavoriteCount = json['favoriteCount'] ?? json['favorite_count'];
     // schedules 필드 역시 null 가능성을 고려
     final rawSchedules = json['schedules'] as List<dynamic>?;
 
@@ -195,6 +199,12 @@ class CourseModel {
               .map((sch) => ScheduleItem.fromJson(sch as Map<String, dynamic>))
               .toList()
           : <ScheduleItem>[],
+      shareCount: rawShareCount != null
+          ? int.tryParse(rawShareCount.toString()) ?? 0
+          : 0,
+      favoriteCount: rawFavoriteCount != null
+          ? int.tryParse(rawFavoriteCount.toString()) ?? 0
+          : 0,
     );
   }
 }
