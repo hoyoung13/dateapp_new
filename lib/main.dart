@@ -40,6 +40,8 @@ import 'adminpage.dart';
 import 'aichatscreen.dart';
 import 'admin_place_requests_page.dart';
 import 'admin_place_reports_page.dart';
+import 'admin_inquiry_list_page.dart';
+import 'inquiry_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -102,6 +104,8 @@ class MyApp extends StatelessWidget {
         '/aichat': (context) => const ChatScreen(),
         '/admin/place-requests': (context) => const AdminPlaceRequestsPage(),
         '/admin/place-reports': (context) => const AdminPlaceReportsPage(),
+        '/admin/inquiries': (context) => const AdminInquiryListPage(),
+        '/inquiry': (context) => const InquiryPage(),
 
         '/CategorySelectionPage': (context) =>
             const CategorySelectionPage(), // Add this line
