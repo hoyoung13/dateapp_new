@@ -54,10 +54,10 @@ const startchat = async (req, res) => {
  */
 const getMessages = async (req, res) => {
   const roomId = parseInt(req.params.roomId, 10);
-  try {
+  try {/*m.type,*/
     const { rows } = await pool.query(`
 SELECT m.id, m.sender_id, u.nickname AS sender_nickname, m.content,
-             m.course_id, m.type, m.sent_at      FROM messages m
+             m.course_id,  m.sent_at      FROM messages m
       JOIN users u ON u.id = m.sender_id
       WHERE m.room_id = $1
       ORDER BY m.sent_at
