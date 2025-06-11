@@ -56,8 +56,8 @@ const getMessages = async (req, res) => {
   const roomId = parseInt(req.params.roomId, 10);
   try {
     const { rows } = await pool.query(`
-      SELECT m.id, m.sender_id, u.nickname AS sender_nickname, m.content, m.sent_at
-      FROM messages m
+SELECT m.id, m.sender_id, u.nickname AS sender_nickname, m.content,
+             m.course_id, m.type, m.sent_at      FROM messages m
       JOIN users u ON u.id = m.sender_id
       WHERE m.room_id = $1
       ORDER BY m.sent_at
@@ -104,10 +104,10 @@ const postMessage = async (req, res) => {
     } else if (type === 'course') {
       // 코스 메시지
       query  = `
-        INSERT INTO messages(room_id, sender_id, course_id)
-        VALUES($1, $2, $3)
+        INSERT INTO messages(room_id, sender_id, course_id, content)
+        VALUES($1, $2, $3, $4)
         RETURNING *`;
-      params = [roomId, sender_id, course_id];
+        params = [roomId, sender_id, course_id, content];
   
     } else {
       return res.status(400).json({ error: "invalid message type" });

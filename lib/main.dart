@@ -42,6 +42,7 @@ import 'admin_place_requests_page.dart';
 import 'admin_place_reports_page.dart';
 import 'admin_inquiry_list_page.dart';
 import 'inquiry_page.dart';
+import 'course_detail_loader.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

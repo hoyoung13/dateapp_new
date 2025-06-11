@@ -192,8 +192,10 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
     }
   }
 
-  void _showShareDialog(int courseId) {
-    final userId = Provider.of<UserProvider>(context, listen: false).userId;
+  void _showShareDialog(int courseId, String courseName) {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final userId = userProvider.userId;
+    final nickname = userProvider.nickname ?? '';
     if (userId == null) return;
 
     Future<List<dynamic>> fetchFriends() async {
@@ -280,6 +282,8 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
                                         'sender_id': userId,
                                         'type': 'course',
                                         'course_id': courseId,
+                                        'content':
+                                            '${nickname}님이 ${courseName} 코스를 공유했습니다.',
                                       }),
                                     );
                                     if (sendResp.statusCode == 200) {
@@ -335,6 +339,8 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
                                       'sender_id': userId,
                                       'type': 'course',
                                       'course_id': courseId,
+                                      'content':
+                                          '${nickname}님이 ${courseName} 코스를 공유했습니다.',
                                     }),
                                   );
                                   if (resp.statusCode == 200) {
@@ -631,7 +637,8 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
                     children: [
                       IconButton(
                         icon: const Icon(Icons.share),
-                        onPressed: () => _showShareDialog(course.id),
+                        onPressed: () =>
+                            _showShareDialog(course.id, course.courseName),
                       ),
                       const SizedBox(height: 4),
                       Text(

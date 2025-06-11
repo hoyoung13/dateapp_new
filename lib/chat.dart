@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'constants.dart';
 import 'user_provider.dart';
 import 'chat_message.dart';
+import 'course_detail_loader.dart';
 
 class ChatPage extends StatefulWidget {
   final int roomId;
@@ -136,8 +137,26 @@ class _ChatPageState extends State<ChatPage> {
                           ),
 
                         // 본문
-                        Text(msg['content']),
-
+                        if (msg['course_id'] != null)
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => CourseDetailLoaderPage(
+                                      courseId: msg['course_id']),
+                                ),
+                              );
+                            },
+                            child: Text(
+                              msg['content'] ?? '',
+                              style: const TextStyle(
+                                  decoration: TextDecoration.underline,
+                                  color: Colors.blue),
+                            ),
+                          )
+                        else
+                          Text(msg['content']),
                         // 보낸 시간
                         Text(
                           msg['sent_at'],

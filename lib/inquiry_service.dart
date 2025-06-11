@@ -47,7 +47,7 @@ class InquiryService {
       body: jsonEncode({'user_id': userId, 'title': title, 'content': content}),
     );
 
-    if (response.statusCode != 200) {
+    if (response.statusCode != 201) {
       print('❌ 문의 등록 실패');
       print('응답 코드: ${response.statusCode}');
       print('응답 본문: ${response.body}');
