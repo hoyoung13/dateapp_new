@@ -258,7 +258,7 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
                                 ),
                                 title: Text(f['nickname'] ?? ''),
                                 onTap: () async {
-                                  final resp = await http.post(
+                                  final createResp = await http.post(
                                     Uri.parse('$BASE_URL/chat/rooms/1on1'),
                                     headers: {
                                       'Content-Type': 'application/json'
@@ -266,10 +266,10 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
                                     body: json.encode(
                                         {'userA': userId, 'userB': f['id']}),
                                   );
-                                  if (resp.statusCode == 200) {
+                                  if (createResp.statusCode == 200) {
                                     final roomId =
-                                        json.decode(resp.body)['roomId'];
-                                    await http.post(
+                                        json.decode(createResp.body)['roomId'];
+                                    final sendResp = await http.post(
                                       Uri.parse(
                                           '$BASE_URL/chat/rooms/$roomId/messages'),
                                       headers: {
@@ -281,7 +281,23 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
                                         'course_id': courseId,
                                       }),
                                     );
-                                    Navigator.of(ctx).pop();
+                                    if (sendResp.statusCode == 200) {
+                                      Navigator.of(ctx).pop();
+                                    } else {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content: Text('코스 공유 실패')),
+                                      );
+                                      print(
+                                          'Failed to send course: ${sendResp.statusCode} ${sendResp.body}');
+                                    }
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text('코스 공유 실패')),
+                                    );
+                                    print(
+                                        'Failed to create room: ${createResp.statusCode} ${createResp.body}');
                                   }
                                 },
                               );
@@ -308,7 +324,7 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
                                 title: Text(r['room_name'] ?? ''),
                                 onTap: () async {
                                   final roomId = r['room_id'];
-                                  await http.post(
+                                  final resp = await http.post(
                                     Uri.parse(
                                         '$BASE_URL/chat/rooms/$roomId/messages'),
                                     headers: {
@@ -320,7 +336,16 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
                                       'course_id': courseId,
                                     }),
                                   );
-                                  Navigator.of(ctx).pop();
+                                  if (resp.statusCode == 200) {
+                                    Navigator.of(ctx).pop();
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text('코스 공유 실패')),
+                                    );
+                                    print(
+                                        'Failed to share course to room $roomId: ${resp.statusCode} ${resp.body}');
+                                  }
                                 },
                               );
                             },
