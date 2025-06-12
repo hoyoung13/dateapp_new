@@ -43,6 +43,7 @@ import 'admin_place_reports_page.dart';
 import 'admin_inquiry_list_page.dart';
 import 'inquiry_page.dart';
 import 'course_detail_loader.dart';
+import 'admin_edit_place_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -106,6 +107,15 @@ class MyApp extends StatelessWidget {
         '/admin/place-requests': (context) => const AdminPlaceRequestsPage(),
         '/admin/place-reports': (context) => const AdminPlaceReportsPage(),
         '/admin/inquiries': (context) => const AdminInquiryListPage(),
+        //'/admin/inquiries': (context) => const AdminInquiryListPage(),
+        '/admin/edit-place': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments
+              as Map<String, dynamic>;
+          return AdminEditPlacePage(
+            placeId: args['placeId'] as int,
+            reportId: args['reportId'] as int,
+          );
+        },
         '/inquiry': (context) => const InquiryPage(),
         '/CategorySelectionPage': (context) =>
             const CategorySelectionPage(), // Add this line

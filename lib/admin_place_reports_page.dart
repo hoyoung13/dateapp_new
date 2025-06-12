@@ -42,14 +42,24 @@ class _AdminPlaceReportsPageState extends State<AdminPlaceReportsPage> {
     throw Exception('failed');
   }
 
-  Future<void> _update(int id, {bool deletePlace = false}) async {
+  Future<void> _update(int id, String msg, {bool deletePlace = false}) async {
     final uri = Uri.parse('$BASE_URL/admin/place-reports/$id');
     await http.patch(uri,
         headers: {'Content-Type': 'application/json', 'user_id': '${_adminId}'},
-        body: jsonEncode({'status': 'resolved', 'delete_place': deletePlace}));
+        body: jsonEncode({'delete_place': deletePlace, 'message': msg}));
     setState(() {
       _future = _loadReports();
     });
+  }
+
+  Future<void> _edit(PlaceReport report) async {
+    final result = await Navigator.pushNamed(context, '/admin/edit-place',
+        arguments: {'placeId': report.placeId, 'reportId': report.id});
+    if (result == true) {
+      setState(() {
+        _future = _loadReports();
+      });
+    }
   }
 
   Future<void> _startChat(int userId, String nickname) async {
@@ -65,6 +75,34 @@ class _AdminPlaceReportsPageState extends State<AdminPlaceReportsPage> {
               builder: (_) => ChatPage(
                   roomId: roomId, peerName: nickname, userId: _adminId ?? 0)));
     }
+  }
+
+  void _showReasonDialog(PlaceReport report) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('신고 사유'),
+          content: Text(report.reason),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                _edit(report);
+              },
+              child: const Text('장소 수정하기'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                _update(report.id, '장소 정보에 문제가 없습니다.');
+              },
+              child: const Text('문제없음'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -87,25 +125,9 @@ class _AdminPlaceReportsPageState extends State<AdminPlaceReportsPage> {
               final item = items[index];
               return ListTile(
                 title: Text(item.placeName),
-                subtitle: Text('카테고리: ${item.category}\n${item.reason}'),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.chat),
-                      onPressed: () =>
-                          _startChat(item.userId, item.reporterNickname),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.check),
-                      onPressed: () => _update(item.id),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete),
-                      onPressed: () => _update(item.id, deletePlace: true),
-                    ),
-                  ],
-                ),
+                subtitle: Text('카테고리: ${item.category}'),
+                trailing: Text(item.createdAt),
+                onTap: () => _showReasonDialog(item),
               );
             },
           );
