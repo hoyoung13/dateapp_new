@@ -42,14 +42,24 @@ class _AdminPlaceReportsPageState extends State<AdminPlaceReportsPage> {
     throw Exception('failed');
   }
 
-  Future<void> _update(int id, {bool deletePlace = false}) async {
+  Future<void> _update(int id, String msg, {bool deletePlace = false}) async {
     final uri = Uri.parse('$BASE_URL/admin/place-reports/$id');
     await http.patch(uri,
         headers: {'Content-Type': 'application/json', 'user_id': '${_adminId}'},
-        body: jsonEncode({'status': 'resolved', 'delete_place': deletePlace}));
+        body: jsonEncode({'delete_place': deletePlace, 'message': msg}));
     setState(() {
       _future = _loadReports();
     });
+  }
+
+  Future<void> _edit(PlaceReport report) async {
+    final result = await Navigator.pushNamed(context, '/admin/edit-place',
+        arguments: {'placeId': report.placeId, 'reportId': report.id});
+    if (result == true) {
+      setState(() {
+        _future = _loadReports();
+      });
+    }
   }
 
   Future<void> _startChat(int userId, String nickname) async {
@@ -98,14 +108,16 @@ class _AdminPlaceReportsPageState extends State<AdminPlaceReportsPage> {
                     ),
                     IconButton(
                       icon: const Icon(Icons.check),
-                      onPressed: () => _update(item.id),
+                      onPressed: () =>
+                          _update(item.id, '장소 정보에 문제가 없습니다.'),
                     ),
                     IconButton(
                       icon: const Icon(Icons.delete),
-                      onPressed: () => _update(item.id, deletePlace: true),
+                      onPressed: () => _update(item.id, '장소 정보에 문제가 없습니다.', deletePlace: true),
                     ),
                   ],
                 ),
+                onTap: () => _edit(item),
               );
             },
           );

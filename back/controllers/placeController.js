@@ -166,6 +166,84 @@ const getPlaceById = async (req, res) => {
   }
 };
 
+// 관리자용 상세 조회 (승인 여부 무시)
+const getPlaceByIdAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rows } = await pool.query('SELECT * FROM place_info WHERE id=$1', [id]);
+    if (!rows.length) return res.status(404).json({ error: 'Place not found' });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error('getPlaceByIdAdmin error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// 장소 정보 수정
+const updatePlace = async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+
+  let {
+    place_name,
+    description,
+    address,
+    phone,
+    main_category,
+    sub_category,
+    hashtags,
+    images,
+    operating_hours,
+    price_info,
+    with_who,
+    purpose,
+    mood
+  } = req.body;
+
+  if (typeof operating_hours === 'string') {
+    try { operating_hours = JSON.parse(operating_hours); } catch { operating_hours = null; }
+  }
+  if (typeof price_info === 'string') {
+    try { price_info = JSON.parse(price_info); } catch { price_info = null; }
+  }
+
+  const opJson = operating_hours ? JSON.stringify(operating_hours) : null;
+  const priceJson = price_info ? JSON.stringify(price_info) : null;
+
+  const fields = [];
+  const values = [];
+  const add = (col, val) => { fields.push(`${col}=$${values.length + 1}`); values.push(val); };
+
+  if (place_name !== undefined) add('place_name', place_name);
+  if (description !== undefined) add('description', description);
+  if (address !== undefined) add('address', address);
+  if (phone !== undefined) add('phone', phone);
+  if (main_category !== undefined) add('main_category', main_category);
+  if (sub_category !== undefined) add('sub_category', sub_category);
+  if (hashtags !== undefined) add('hashtags', hashtags);
+  if (images !== undefined) add('images', images);
+  if (operating_hours !== undefined) add('operating_hours', opJson);
+  if (price_info !== undefined) add('price_info', priceJson);
+  if (with_who !== undefined) add('with_who', with_who);
+  if (purpose !== undefined) add('purpose', purpose);
+  if (mood !== undefined) add('mood', mood);
+
+  if (!fields.length) {
+    return res.status(400).json({ error: 'No fields to update' });
+  }
+
+  const query = `UPDATE place_info SET ${fields.join(', ')} WHERE id=$${values.length + 1} RETURNING *`;
+  values.push(id);
+
+  try {
+    const { rows } = await pool.query(query, values);
+    res.json({ place: rows[0] });
+  } catch (err) {
+    console.error('updatePlace error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
 /*const getPlaceById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -309,4 +387,12 @@ const getWeeklyRanking = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
-module.exports = { createPlace, getPlaces,getPlaceById,getFilteredPlaces,getWeeklyRanking };
+module.exports = {
+  createPlace,
+  getPlaces,
+  getPlaceById,
+  getFilteredPlaces,
+  getWeeklyRanking,
+  updatePlace,
+  getPlaceByIdAdmin,
+};

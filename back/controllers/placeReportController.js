@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const chatCtrl = require('./chatRoomsController');
 
 const reportPlace = async (req, res) => {
   const placeId = parseInt(req.params.id, 10);
@@ -48,16 +49,61 @@ SELECT
 
 const updateReport = async (req, res) => {
   const reportId = parseInt(req.params.reportId, 10);
-  const { status, delete_place } = req.body;
+  const { delete_place, message } = req.body;
+  const adminId = parseInt(
+    req.body.user_id || req.body.admin_id || req.headers['user_id'],
+    10
+  );
+
   try {
     const { rows } = await pool.query(
       'UPDATE place_reports SET status=$1 WHERE id=$2 RETURNING *',
-      [status, reportId]
+      ['resolved', reportId]
     );
-    if (delete_place === true && rows.length) {
-      await pool.query('DELETE FROM place_info WHERE id=$1', [rows[0].place_id]);
+    if (!rows.length) return res.status(404).json({ error: 'Not found' });
+    const report = rows[0];
+
+    if (delete_place === true) {
+      await pool.query('DELETE FROM place_info WHERE id=$1', [report.place_id]);
     }
-    res.json({ report: rows[0] });
+
+    if (adminId && message) {
+      try {
+        const { rows: roomRows } = await pool.query(
+          `SELECT crm.room_id
+             FROM chat_room_members crm
+            WHERE crm.user_id IN ($1,$2)
+            GROUP BY crm.room_id
+           HAVING COUNT(*) = 2
+              AND (SELECT COUNT(*) FROM chat_room_members WHERE room_id = crm.room_id) = 2
+            LIMIT 1`,
+          [adminId, report.user_id]
+        );
+        let roomId;
+        if (roomRows.length) {
+          roomId = roomRows[0].room_id;
+        } else {
+          const roomRes = await pool.query(
+            'INSERT INTO chat_rooms(is_group) VALUES(false) RETURNING id'
+          );
+          roomId = roomRes.rows[0].id;
+          await pool.query(
+            'INSERT INTO chat_room_members(room_id, user_id) VALUES ($1,$2), ($1,$3)',
+            [roomId, adminId, report.user_id]
+          );
+        }
+        const mockReq = {
+          params: { roomId },
+          body: { sender_id: adminId, type: 'text', content: message },
+        };
+        const noop = () => ({ json: () => {} });
+        await chatCtrl.postMessage(mockReq, { status: noop, json: () => {} });
+      } catch (e) {
+        console.error('send chat error:', e);
+      }
+    }
+
+    res.json({ report });
   } catch (err) {
     console.error('updateReport error:', err);
     res.status(500).json({ error: 'Server error' });
