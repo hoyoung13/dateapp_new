@@ -115,6 +115,112 @@ class _PostPageState extends State<PostPage> {
     }
   }
 
+  void _showReportDialog() {
+    const reasons = [
+      '게시판에 부적절한 게시글',
+      '음란성 게시글',
+      '욕설',
+      '도박',
+      '광고/사기',
+      '기타',
+    ];
+    String selectedReason = reasons.first;
+    showDialog(
+      context: context,
+      builder: (dialogCtx) {
+        return StatefulBuilder(
+          builder: (ctx, setState) {
+            return AlertDialog(
+              title: const Text('게시글 신고'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: reasons
+                    .map(
+                      (r) => RadioListTile<String>(
+                        title: Text(r),
+                        value: r,
+                        groupValue: selectedReason,
+                        onChanged: (val) {
+                          if (val != null) setState(() => selectedReason = val);
+                        },
+                      ),
+                    )
+                    .toList(),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogCtx),
+                  child: const Text('취소'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(dialogCtx);
+                    _reportPost(selectedReason);
+                  },
+                  child: const Text('신고'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _deletePost() async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    int? userId = userProvider.userId;
+    try {
+      final response = await http.delete(
+        Uri.parse('$BASE_URL/boards/${widget.postId}'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'user_id': userId}),
+      );
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('게시글이 삭제되었습니다.')));
+        Navigator.of(context).pop();
+      } else {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('삭제에 실패했습니다.')));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('서버 오류가 발생했습니다.')));
+    }
+  }
+
+  Future<void> _reportPost(String reason) async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    int? userId = userProvider.userId;
+    if (userId == null) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('로그인이 필요합니다.')));
+      return;
+    }
+    try {
+      final response = await http.post(
+        Uri.parse('$BASE_URL/boards/${widget.postId}/report'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'user_id': userId,
+          'category': reason,
+          'reason': reason,
+        }),
+      );
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('신고가 접수되었습니다.')));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('신고 실패: ${response.statusCode}')));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('서버 오류가 발생했습니다.')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_post == null) {
@@ -122,10 +228,49 @@ class _PostPageState extends State<PostPage> {
         body: Center(child: CircularProgressIndicator()),
       );
     }
-
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final userId = userProvider.userId;
     return Scaffold(
       appBar: AppBar(
-          title: const Text("게시글 보기"), backgroundColor: Colors.cyan[100]),
+        title: const Text("게시글 보기"),
+        backgroundColor: Colors.cyan[100],
+        actions: [
+          if (_post!["user_id"] == userId)
+            IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: const Text("게시글 삭제"),
+                      content: const Text("정말로 삭제하시겠습니까?"),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Text("취소"),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            _deletePost();
+                          },
+                          child: const Text("삭제",
+                              style: TextStyle(color: Colors.red)),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.flag),
+              onPressed: _showReportDialog,
+            ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
