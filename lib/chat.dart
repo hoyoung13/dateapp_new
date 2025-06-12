@@ -89,10 +89,50 @@ class _ChatPageState extends State<ChatPage> {
     final nickname = userProvider.nickname ?? '';
     if (userId == null) return;
 
-    final Map<String, dynamic>? result = await showDialog<Map<String, dynamic>>(
+    Future<List<dynamic>> fetchPlaces() async {
+      final resp = await http.get(Uri.parse('$BASE_URL/places'));
+      if (resp.statusCode == 200) {
+        return json.decode(resp.body) as List<dynamic>;
+      }
+      return [];
+    }
+
+    final selected = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
-      barrierDismissible: false,
-      builder: (_) => ZzimListDialog(userId: userId),
+      isScrollControlled: true,
+      builder: (ctx) {
+        return FutureBuilder<List<dynamic>>(
+          future: fetchPlaces(),
+          builder: (c, snap) {
+            if (snap.connectionState != ConnectionState.done) {
+              return const SizedBox(
+                height: 200,
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+            final places = snap.data ?? [];
+            if (places.isEmpty) {
+              return const SizedBox(
+                height: 200,
+                child: Center(child: Text('장소가 없습니다.')),
+              );
+            }
+            return SizedBox(
+              height: 400,
+              child: ListView.builder(
+                itemCount: places.length,
+                itemBuilder: (c, i) {
+                  final p = places[i];
+                  return ListTile(
+                    title: Text(p['place_name'] ?? ''),
+                    onTap: () => Navigator.pop(c, p as Map<String, dynamic>),
+                  );
+                },
+              ),
+            );
+          },
+        );
+      },
     );
 
     if (selected == null) return;
@@ -174,23 +214,10 @@ class _ChatPageState extends State<ChatPage> {
       },
     );
 
-    if (result == null) return;
+    if (selected == null) return;
 
-    Map<String, dynamic>? selectedPlace;
-
-    if (result.containsKey('place_name')) {
-      selectedPlace = result;
-    } else {
-      selectedPlace = await Navigator.push<Map<String, dynamic>>(
-        context,
-        MaterialPageRoute(
-          builder: (_) => SelectplacePage(collection: result),
-        ),
-      );
-      if (selectedPlace == null) return;
-    }
-    final placeId = selectedPlace['id'];
-    final placeName = selectedPlace['place_name'] ?? '';
+    final courseId = selected['id'];
+    final courseName = selected['course_name'] ?? '';
 
     final resp = await http.post(
       Uri.parse('$BASE_URL/chat/rooms/${widget.roomId}/messages'),

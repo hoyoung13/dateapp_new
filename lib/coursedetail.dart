@@ -8,6 +8,7 @@ import 'schedule_item.dart';
 import 'constants.dart';
 import 'dart:convert';
 import 'map.dart' hide NLatLng;
+import 'foodplace.dart';
 
 class CourseDetailPage extends StatefulWidget {
   final String courseName; // 코스 이름
@@ -126,6 +127,39 @@ class _CourseDetailPageState extends State<CourseDetailPage>
     return null;
   }
 
+  Future<void> _openPlaceDetail(String placeId) async {
+    print('▶ 장소 디테일 이동 시도: $placeId');
+
+    try {
+      final resp = await http.get(Uri.parse('$BASE_URL/places/$placeId'));
+      print('▶ 응답 코드: ${resp.statusCode}');
+      print('▶ 응답 본문: ${resp.body}');
+
+      if (resp.statusCode == 200) {
+        final data = json.decode(resp.body) as Map<String, dynamic>;
+        if (!mounted) return;
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => PlaceInPageUIOnly(payload: data),
+          ),
+        );
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('장소 정보를 불러오지 못했습니다. (${resp.statusCode})')),
+        );
+      }
+    } catch (e) {
+      print("❌ 예외 발생: $e");
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('장소 정보 로드 중 오류가 발생했습니다.')),
+      );
+    }
+  }
+
   /// (3) 지도 위젯
   Widget _buildMapView() {
     if (_centerLatLng == null) {
@@ -201,48 +235,58 @@ class _CourseDetailPageState extends State<CourseDetailPage>
       );
     }
 
-    return Container(
-      width: 200,
-      margin: const EdgeInsets.only(right: 8),
-      child: Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        clipBehavior: Clip.antiAlias,
-        elevation: 2,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 이미지
-            SizedBox(
-              height: 120,
-              width: double.infinity,
-              child: imageWidget,
-            ),
-            // 텍스트 정보
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    placeName,
-                    style: const TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.bold),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    placeAddress,
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+    return GestureDetector(
+      onTap: () {
+        final pid = item.placeId;
+        print("▶ placeId 눌림: $pid");
+
+        if (pid != null && pid.isNotEmpty) {
+          _openPlaceDetail(pid);
+        }
+      },
+      child: Container(
+        width: 200,
+        margin: const EdgeInsets.only(right: 8),
+        child: Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          clipBehavior: Clip.antiAlias,
+          elevation: 2,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 이미지
+              SizedBox(
+                height: 120,
+                width: double.infinity,
+                child: imageWidget,
               ),
-            ),
-          ],
+              // 텍스트 정보
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      placeName,
+                      style: const TextStyle(
+                          fontSize: 14, fontWeight: FontWeight.bold),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      placeAddress,
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
