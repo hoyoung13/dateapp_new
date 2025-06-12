@@ -20,6 +20,7 @@ const aicourseRoutes = require('./routes/aicourseRoutes');
 const adminPlaceRoutes = require('./routes/adminPlaceRoutes');
 const placeReportRoutes = require('./routes/placeReportRoutes');
 const inquiryRoutes = require('./routes/inquiryRoutes');
+const postReportRoutes = require('./routes/postReportRoutes');
 
 dotenv.config(); // ✅ 환경 변수 로드
 
@@ -68,6 +69,7 @@ app.use('/chat', chatRoutes);
 app.use('/aicourse', aicourseRoutes);
 app.use('/admin', adminPlaceRoutes);
 app.use('/', placeReportRoutes);
+app.use('/', postReportRoutes);
 
 // ✅ 서버 실행
 const PORT = process.env.PORT || 5000;
