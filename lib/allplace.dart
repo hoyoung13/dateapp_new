@@ -1,92 +1,11 @@
 import 'dart:convert';
-import 'package:date/courseplace.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'foodplace.dart';
 import 'dart:io';
 import 'constants.dart';
-import 'zzimlist.dart';
 import 'courseplace.dart';
-
-/// FavoriteIcon 위젯: 하트 아이콘을 토글하는 상태
-import 'package:flutter/material.dart';
-
-/// 즐겨찾기(하트) 버튼을 누르면 바텀시트가 열리는 위젯
-class FavoriteIcon extends StatelessWidget {
-  final Map<String, dynamic> place; // 어떤 장소인지 전달
-
-  const FavoriteIcon({Key? key, required this.place}) : super(key: key);
-
-  void _showCollectionSelectSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true, // 키보드 대응
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-      ),
-      builder: (BuildContext context) {
-        return CollectionSelectSheet(place: place);
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.favorite_border, color: Colors.grey),
-      onPressed: () {
-        _showCollectionSelectSheet(context);
-      },
-    );
-  }
-}
-
-/// 콜렉션 선택 바텀시트 – 실제 서버에서 콜렉션 목록을 불러올 수 있도록 추후 API 호출로 대체 가능
-class CollectionSelectSheet extends StatefulWidget {
-  final Map<String, dynamic> place; // 어떤 장소를 콜렉션에 추가할지
-
-  const CollectionSelectSheet({Key? key, required this.place})
-      : super(key: key);
-
-  @override
-  _CollectionSelectSheetState createState() => _CollectionSelectSheetState();
-}
-
-class _CollectionSelectSheetState extends State<CollectionSelectSheet> {
-  Future<List<dynamic>>? _collectionsFuture;
-  String? selectedCollection; // 선택한 콜렉션의 id
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 16.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // 상단 구분선
-            Container(
-              height: 6,
-              width: 40,
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(3),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class AllplacePage extends StatefulWidget {
   const AllplacePage({super.key});
@@ -110,7 +29,21 @@ class _AllplacePageState extends State<AllplacePage> {
 
   // DB에서 등록된 장소 데이터를 저장할 리스트
   List<Map<String, dynamic>> registeredPlaces = [];
-
+  String searchKeyword = '';
+  String? selectedSubCategory;
+  final Map<String, List<String>> subCategoryMap = const {
+    '먹기': ['밥', '고기', '면', '해산물', '길거리', '샐러드', '빵'],
+    '마시기': ['커피', '차/음료', '디저트', '맥주', '소주', '막걸리', '칵테일/와인'],
+    '놀기': ['실외활동', '실내활동', '게임/오락', '힐링', 'VR/방탈출', '만들기'],
+    '보기': ['영화', '전시', '공연', '박물관', '스포츠', '쇼핑'],
+    '걷기': ['시장', '공원', '테마거리', '야경/풍경', '문화제'],
+  };
+  List<String> selectedWithWho = [];
+  final List<String> withWhoOptions = ['혼자', '친구', '연인', '가족', '반려동물'];
+  List<String> selectedPurpose = [];
+  final List<String> purposeOptions = ['식사', '데이트', '힐링', '운동', '회식'];
+  List<String> selectedMood = [];
+  final List<String> moodOptions = ['로맨틱', '액티브', '편안함', '모던', '전통적'];
   @override
   void initState() {
     super.initState();
@@ -126,7 +59,171 @@ class _AllplacePageState extends State<AllplacePage> {
     });
   }
 
-  // DB에서 장소 데이터를 불러오고, "먹기" 카테고리만 필터링
+  void _showFilterDialog() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) {
+        String tempKeyword = searchKeyword;
+        String tempMain = selectedMainCategory;
+        String? tempSub = selectedSubCategory;
+        List<String> tempWith = List.from(selectedWithWho);
+        List<String> tempPur = List.from(selectedPurpose);
+        List<String> tempMood = List.from(selectedMood);
+        List<String> tempSubOptions = subCategoryMap[tempMain]!;
+
+        return StatefulBuilder(
+          builder: (ctx, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                  left: 16,
+                  right: 16,
+                  top: 20),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextField(
+                      decoration: const InputDecoration(
+                        labelText: '검색어',
+                        border: OutlineInputBorder(),
+                      ),
+                      onChanged: (v) => tempKeyword = v,
+                      controller: TextEditingController(text: tempKeyword),
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(
+                        labelText: '메인 카테고리',
+                        border: OutlineInputBorder(),
+                      ),
+                      value: tempMain,
+                      items: subCategoryMap.keys
+                          .map(
+                              (c) => DropdownMenuItem(value: c, child: Text(c)))
+                          .toList(),
+                      onChanged: (v) {
+                        if (v == null) return;
+                        setModalState(() {
+                          tempMain = v;
+                          tempSub = null;
+                          tempSubOptions = subCategoryMap[tempMain]!;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: '세부 카테고리',
+                        border: OutlineInputBorder(),
+                      ),
+                      value: tempSub,
+                      items: tempSubOptions
+                          .map(
+                              (c) => DropdownMenuItem(value: c, child: Text(c)))
+                          .toList(),
+                      onChanged: (v) => setModalState(() => tempSub = v),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text('누구와 함께?',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: withWhoOptions.map((o) {
+                        final sel = tempWith.contains(o);
+                        return ChoiceChip(
+                          label: Text(o),
+                          selected: sel,
+                          selectedColor: Colors.cyan.shade200,
+                          onSelected: (_) {
+                            setModalState(() {
+                              if (sel)
+                                tempWith.remove(o);
+                              else
+                                tempWith.add(o);
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text('목적',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: purposeOptions.map((o) {
+                        final sel = tempPur.contains(o);
+                        return ChoiceChip(
+                          label: Text(o),
+                          selected: sel,
+                          selectedColor: Colors.cyan.shade200,
+                          onSelected: (_) {
+                            setModalState(() {
+                              if (sel)
+                                tempPur.remove(o);
+                              else
+                                tempPur.add(o);
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text('분위기',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: moodOptions.map((o) {
+                        final sel = tempMood.contains(o);
+                        return ChoiceChip(
+                          label: Text(o),
+                          selected: sel,
+                          selectedColor: Colors.cyan.shade200,
+                          onSelected: (_) {
+                            setModalState(() {
+                              if (sel)
+                                tempMood.remove(o);
+                              else
+                                tempMood.add(o);
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 32),
+                    Center(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            searchKeyword = tempKeyword;
+                            selectedMainCategory = tempMain;
+                            selectedSubCategory = tempSub;
+                            selectedWithWho = tempWith;
+                            selectedPurpose = tempPur;
+                            selectedMood = tempMood;
+                          });
+                          Navigator.pop(context);
+                          _fetchRegisteredPlaces();
+                        },
+                        child: const Text('적용'),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   Future<void> _fetchRegisteredPlaces() async {
     setState(() => isLoading = true);
 
@@ -142,12 +239,12 @@ class _AllplacePageState extends State<AllplacePage> {
         }
 
         // 기존 필터링 로직…
-        final filtered = raw
+        var filtered = raw
             .where((place) {
               final p = place as Map<String, dynamic>;
 
               // 1) 카테고리 체크
-              if (p['main_category'] != '먹기') return false;
+              if (p['main_category'] != selectedMainCategory) return false;
 
               // 2) city 키가 없다면 p['address'] 문자열로 대체
               final addr = (p['address'] ?? '') as String;
@@ -164,6 +261,58 @@ class _AllplacePageState extends State<AllplacePage> {
             })
             .cast<Map<String, dynamic>>()
             .toList();
+        if (searchKeyword.isNotEmpty) {
+          filtered = filtered
+              .where((p) =>
+                  (p['place_name'] ?? '').toString().contains(searchKeyword))
+              .toList();
+        }
+
+        if (selectedSubCategory != null) {
+          filtered = filtered
+              .where((p) => p['sub_category'] == selectedSubCategory)
+              .toList();
+        }
+
+        filtered = filtered.where((p) {
+          final wh = List<String>.from(p['with_who'] ?? <String>[]);
+          final pu = List<String>.from(p['purpose'] ?? <String>[]);
+          final mo = List<String>.from(p['mood'] ?? <String>[]);
+
+          if (selectedWithWho.isNotEmpty &&
+              !selectedWithWho.any((x) => wh.contains(x))) return false;
+          if (selectedPurpose.isNotEmpty &&
+              !selectedPurpose.any((x) => pu.contains(x))) return false;
+          if (selectedMood.isNotEmpty &&
+              !selectedMood.any((x) => mo.contains(x))) return false;
+          return true;
+        }).toList();
+
+        if (selectedRecommendation == '찜순') {
+          filtered.sort((a, b) {
+            final ai = int.tryParse(a['favorite_count']?.toString() ?? '') ??
+                (a['favorite_count'] is num
+                    ? (a['favorite_count'] as num).toInt()
+                    : 0);
+            final bi = int.tryParse(b['favorite_count']?.toString() ?? '') ??
+                (b['favorite_count'] is num
+                    ? (b['favorite_count'] as num).toInt()
+                    : 0);
+            return bi.compareTo(ai);
+          });
+        } else if (selectedRecommendation == '평점순') {
+          filtered.sort((a, b) {
+            final ad = double.tryParse(a['rating_avg']?.toString() ?? '') ??
+                (a['rating_avg'] is num
+                    ? (a['rating_avg'] as num).toDouble()
+                    : 0.0);
+            final bd = double.tryParse(b['rating_avg']?.toString() ?? '') ??
+                (b['rating_avg'] is num
+                    ? (b['rating_avg'] as num).toDouble()
+                    : 0.0);
+            return bd.compareTo(ad);
+          });
+        }
 
         setState(() {
           registeredPlaces = filtered;
@@ -186,7 +335,10 @@ class _AllplacePageState extends State<AllplacePage> {
         backgroundColor: Colors.cyan[100],
         title: const Text('코스 제작'),
         actions: [
-          IconButton(icon: const Icon(Icons.search), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: _showFilterDialog,
+          ),
         ],
       ),
       body: Column(
@@ -492,8 +644,6 @@ class _AllplacePageState extends State<AllplacePage> {
                       ],
                     ),
                   ),
-                  // FavoriteIcon에 해당 장소 데이터를 전달
-                  FavoriteIcon(place: place),
                 ],
               ),
             ),
