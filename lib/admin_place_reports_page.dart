@@ -84,7 +84,7 @@ class _AdminPlaceReportsPageState extends State<AdminPlaceReportsPage> {
               return ListTile(
                 title: Text(item['place_name'] ?? ''),
                 subtitle: Text(
-                    '${item['category'] ?? ''} - ${item['reason'] ?? ''}'),
+                    '카테고리: ${item['category'] ?? ''}\n${item['reason'] ?? ''}'),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
