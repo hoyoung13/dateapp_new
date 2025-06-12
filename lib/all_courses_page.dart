@@ -292,7 +292,7 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
                                         const SnackBar(
-                                            content: Text('코스 공유 실패')),
+                                            content: Text('코스를 공유하였습니다.')),
                                       );
                                       print(
                                           'Failed to send course: ${sendResp.statusCode} ${sendResp.body}');

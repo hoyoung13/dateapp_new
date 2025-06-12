@@ -82,10 +82,159 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Future<void> _pickAndSendPlace() async {
-    // (위에 예시 구현하셨던 대로)
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final userId = userProvider.userId;
+    final nickname = userProvider.nickname ?? '';
+    if (userId == null) return;
+
+    Future<List<dynamic>> fetchPlaces() async {
+      final resp = await http.get(Uri.parse('$BASE_URL/places'));
+      if (resp.statusCode == 200) {
+        return json.decode(resp.body) as List<dynamic>;
+      }
+      return [];
+    }
+
+    final selected = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return FutureBuilder<List<dynamic>>(
+          future: fetchPlaces(),
+          builder: (c, snap) {
+            if (snap.connectionState != ConnectionState.done) {
+              return const SizedBox(
+                height: 200,
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+            final places = snap.data ?? [];
+            if (places.isEmpty) {
+              return const SizedBox(
+                height: 200,
+                child: Center(child: Text('장소가 없습니다.')),
+              );
+            }
+            return SizedBox(
+              height: 400,
+              child: ListView.builder(
+                itemCount: places.length,
+                itemBuilder: (c, i) {
+                  final p = places[i];
+                  return ListTile(
+                    title: Text(p['place_name'] ?? ''),
+                    onTap: () => Navigator.pop(c, p as Map<String, dynamic>),
+                  );
+                },
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    if (selected == null) return;
+
+    final placeId = selected['id'];
+    final placeName = selected['place_name'] ?? '';
+
+    final resp = await http.post(
+      Uri.parse('$BASE_URL/chat/rooms/${widget.roomId}/messages'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'sender_id': userId,
+        'type': 'place',
+        'place_id': placeId,
+        'content': '${nickname}님이 $placeName 장소를 공유했습니다.',
+      }),
+    );
+
+    if (resp.statusCode == 200 || resp.statusCode == 201) {
+      _loadChatHistory();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('장소 전송 실패')),
+      );
+    }
   }
+
   Future<void> _pickAndSendCourse() async {
-    // (위에 예시 구현하셨던 대로)
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final userId = userProvider.userId;
+    final nickname = userProvider.nickname ?? '';
+    if (userId == null) return;
+
+    Future<List<dynamic>> fetchCourses() async {
+      final resp = await http.get(Uri.parse('$BASE_URL/course/allcourse'));
+      if (resp.statusCode == 200) {
+        final decoded = json.decode(resp.body) as Map<String, dynamic>;
+        return decoded['courses'] as List<dynamic>;
+      }
+      return [];
+    }
+
+    final selected = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return FutureBuilder<List<dynamic>>(
+          future: fetchCourses(),
+          builder: (c, snap) {
+            if (snap.connectionState != ConnectionState.done) {
+              return const SizedBox(
+                height: 200,
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+            final courses = snap.data ?? [];
+            if (courses.isEmpty) {
+              return const SizedBox(
+                height: 200,
+                child: Center(child: Text('코스가 없습니다.')),
+              );
+            }
+            return SizedBox(
+              height: 400,
+              child: ListView.builder(
+                itemCount: courses.length,
+                itemBuilder: (c, i) {
+                  final course = courses[i];
+                  return ListTile(
+                    title: Text(course['course_name'] ?? ''),
+                    onTap: () =>
+                        Navigator.pop(c, course as Map<String, dynamic>),
+                  );
+                },
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    if (selected == null) return;
+
+    final courseId = selected['id'];
+    final courseName = selected['course_name'] ?? '';
+
+    final resp = await http.post(
+      Uri.parse('$BASE_URL/chat/rooms/${widget.roomId}/messages'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'sender_id': userId,
+        'type': 'course',
+        'course_id': courseId,
+        'content': '${nickname}님이 $courseName 코스를 공유했습니다.',
+      }),
+    );
+
+    if (resp.statusCode == 200 || resp.statusCode == 201) {
+      _loadChatHistory();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('코스 전송 실패')),
+      );
+    }
   }
 
   @override
