@@ -50,6 +50,8 @@ class _CourseCreationPageState extends State<CourseCreationPage> {
     // 2) 'place_name' 키가 있으면, 이미 CourseplacePage → 코스 등록하기 까지 마친 "장소" 객체
     if (result.containsKey('place_name')) {
       setState(() {
+        schedules[idx].placeId = result['id']?.toString();
+
         schedules[idx].placeName = result['place_name'];
         schedules[idx].placeAddress = result['address'];
         schedules[idx].placeImage = result['image'];
@@ -69,6 +71,7 @@ class _CourseCreationPageState extends State<CourseCreationPage> {
 
     // 4) 선택된 장소가 있다면 스케줄에 반영
     setState(() {
+      schedules[idx].placeId = selectedPlace['id']?.toString();
       schedules[idx].placeName = selectedPlace['place_name'];
       schedules[idx].placeAddress = selectedPlace['address'];
       schedules[idx].placeImage = selectedPlace['image'];
