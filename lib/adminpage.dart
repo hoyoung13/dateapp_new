@@ -9,7 +9,7 @@ class AdminPage extends StatelessWidget {
   // 메뉴 아이템 목록
   static const List<_AdminMenuItem> _menus = [
     _AdminMenuItem(title: "유저 관리", routeName: "/admin/users"),
-    _AdminMenuItem(title: "게시글 관리", routeName: "/admin/posts"),
+    _AdminMenuItem(title: "게시글 신고 관리", routeName: "/admin/post-reports"),
     _AdminMenuItem(title: "장소 승인 요청", routeName: "/admin/place-requests"),
     _AdminMenuItem(title: "장소 신고 관리", routeName: "/admin/place-reports"),
     _AdminMenuItem(title: "문의 관리", routeName: "/admin/inquiries"),

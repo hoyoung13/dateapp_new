@@ -29,6 +29,7 @@ String formatTime(String timestamp) {
 
 class PostPage extends StatefulWidget {
   final int postId; // ✅ 게시글 ID
+  final int? reportId;
 
   const PostPage({super.key, required this.postId});
 
