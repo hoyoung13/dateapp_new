@@ -2,16 +2,18 @@ const pool = require('../config/db');
 
 const reportPlace = async (req, res) => {
   const placeId = parseInt(req.params.id, 10);
-  const { user_id, reason } = req.body;
-  if (!user_id || !reason) {
-    return res.status(400).json({ error: 'user_id and reason required' });
+  const { user_id, category, reason } = req.body;
+  if (!user_id || !category || !reason || String(category).trim() === '') {
+    return res
+      .status(400)
+      .json({ error: 'user_id, category and reason required' });
   }
   try {
     const { rows } = await pool.query(
-      `INSERT INTO place_reports (place_id, user_id, reason, status)
-       VALUES ($1, $2, $3, 'pending')
+       `INSERT INTO place_reports (place_id, user_id, category, reason, status)
+       VALUES ($1, $2, $3, $4, 'pending')
        RETURNING *`,
-      [placeId, user_id, reason]
+       [placeId, user_id, category, reason]
     );
     res.status(201).json({ report: rows[0] });
   } catch (err) {
@@ -23,8 +25,16 @@ const reportPlace = async (req, res) => {
 const listReports = async (_req, res) => {
   try {
     const { rows } = await pool.query(`
-      SELECT pr.*, u.nickname AS reporter_nickname, p.place_name
-      FROM place_reports pr
+SELECT
+        pr.id,
+        pr.place_id,
+        pr.user_id,
+        pr.category,
+        pr.reason,
+        pr.status,
+        pr.created_at,
+        u.nickname AS reporter_nickname,
+        p.place_name      FROM place_reports pr
       JOIN users u ON u.id = pr.user_id
       JOIN place_info p ON p.id = pr.place_id
       ORDER BY pr.created_at DESC

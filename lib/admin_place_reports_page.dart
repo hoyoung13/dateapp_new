@@ -5,6 +5,7 @@ import 'constants.dart';
 import 'chat.dart';
 import 'package:provider/provider.dart';
 import 'user_provider.dart';
+import 'place_report.dart';
 
 class AdminPlaceReportsPage extends StatefulWidget {
   const AdminPlaceReportsPage({Key? key}) : super(key: key);
@@ -14,7 +15,7 @@ class AdminPlaceReportsPage extends StatefulWidget {
 }
 
 class _AdminPlaceReportsPageState extends State<AdminPlaceReportsPage> {
-  Future<List<dynamic>>? _future;
+  Future<List<PlaceReport>>? _future;
   int? _adminId;
 
   @override
@@ -25,15 +26,18 @@ class _AdminPlaceReportsPageState extends State<AdminPlaceReportsPage> {
     _future = _loadReports();
   }
 
-  Future<List<dynamic>> _loadReports() async {
+  Future<List<PlaceReport>> _loadReports() async {
     final uri = Uri.parse('$BASE_URL/admin/place-reports');
     final resp = await http.get(uri, headers: {
       'Content-Type': 'application/json',
       'user_id': '${_adminId}'
     });
     if (resp.statusCode == 200) {
-      final data = jsonDecode(resp.body);
-      return data['reports'] as List<dynamic>;
+      final data = jsonDecode(resp.body) as Map<String, dynamic>;
+      final list = data['reports'] as List<dynamic>;
+      return list
+          .map((e) => PlaceReport.fromJson(e as Map<String, dynamic>))
+          .toList();
     }
     throw Exception('failed');
   }
@@ -67,7 +71,7 @@ class _AdminPlaceReportsPageState extends State<AdminPlaceReportsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('장소 신고 관리')),
-      body: FutureBuilder<List<dynamic>>(
+      body: FutureBuilder<List<PlaceReport>>(
         future: _future,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
@@ -80,25 +84,25 @@ class _AdminPlaceReportsPageState extends State<AdminPlaceReportsPage> {
           return ListView.builder(
             itemCount: items.length,
             itemBuilder: (context, index) {
-              final item = items[index] as Map<String, dynamic>;
+              final item = items[index];
               return ListTile(
-                title: Text(item['place_name'] ?? ''),
-                subtitle: Text(item['reason'] ?? ''),
+                title: Text(item.placeName),
+                subtitle: Text('카테고리: ${item.category}\n${item.reason}'),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
                       icon: const Icon(Icons.chat),
-                      onPressed: () => _startChat(
-                          item['user_id'], item['reporter_nickname']),
+                      onPressed: () =>
+                          _startChat(item.userId, item.reporterNickname),
                     ),
                     IconButton(
                       icon: const Icon(Icons.check),
-                      onPressed: () => _update(item['id']),
+                      onPressed: () => _update(item.id),
                     ),
                     IconButton(
                       icon: const Icon(Icons.delete),
-                      onPressed: () => _update(item['id'], deletePlace: true),
+                      onPressed: () => _update(item.id, deletePlace: true),
                     ),
                   ],
                 ),
