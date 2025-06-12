@@ -83,7 +83,8 @@ class _AdminPlaceReportsPageState extends State<AdminPlaceReportsPage> {
               final item = items[index] as Map<String, dynamic>;
               return ListTile(
                 title: Text(item['place_name'] ?? ''),
-                subtitle: Text(item['reason'] ?? ''),
+                subtitle: Text(
+                    '${item['category'] ?? ''} - ${item['reason'] ?? ''}'),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
