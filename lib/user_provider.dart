@@ -13,6 +13,7 @@ class UserProvider with ChangeNotifier {
   String? _gender;
   String? _profileImagePath;
   bool _isAdmin = false;
+  int _points = 0;
 
   int? get userId => _userId;
   String? get nickname => _nickname;
@@ -22,6 +23,7 @@ class UserProvider with ChangeNotifier {
   String? get gender => _gender;
   String? get profileImagePath => _profileImagePath;
   bool get isAdmin => _isAdmin;
+  int get points => _points;
 
   // ✅ 서버에서 사용자 데이터 가져오기 (로그인 후 프로필 불러오기)
   Future<void> fetchUserProfile(int userId) async {
@@ -36,6 +38,7 @@ class UserProvider with ChangeNotifier {
         _name = data["name"] ?? "";
         _birthDate = data["birth_date"] ?? "";
         _gender = data["gender"];
+        _points = data["points"] ?? 0;
 
         // ✅ 프로필 이미지가 NULL이 아닐 경우만 업데이트
         if (data["profile_image"] != null && data["profile_image"].isNotEmpty) {
@@ -45,6 +48,7 @@ class UserProvider with ChangeNotifier {
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString("profile_image", _profileImagePath ?? "");
+        await prefs.setInt("points", _points);
 
         notifyListeners();
       } else {
@@ -62,6 +66,8 @@ class UserProvider with ChangeNotifier {
     _name = userData['name'] ?? "";
     _birthDate = userData['birth_date'] ?? "";
     _gender = userData['gender'] ?? "";
+    _points = userData['points'] ?? 0;
+
     // ✅ profile_image가 null이면 빈 문자열을 할당
     _profileImagePath = userData['profile_image'] != null &&
             userData['profile_image'].isNotEmpty
@@ -82,6 +88,7 @@ class UserProvider with ChangeNotifier {
     await prefs.setString("gender", _gender!);
     await prefs.setString("profile_image", _profileImagePath!);
     await prefs.setBool("is_admin", _isAdmin);
+    await prefs.setInt("points", _points);
 
     notifyListeners();
     await fetchUserProfile(_userId!);
@@ -98,6 +105,7 @@ class UserProvider with ChangeNotifier {
     _gender = prefs.getString("gender");
     _profileImagePath = prefs.getString("profile_image");
     _isAdmin = prefs.getBool("is_admin") ?? false;
+    _points = prefs.getInt("points") ?? 0;
 
     notifyListeners();
   }
@@ -140,6 +148,7 @@ class UserProvider with ChangeNotifier {
     _birthDate = null;
     _gender = null;
     _isAdmin = false; // 메모리 상에서도 false 처리
+    _points = 0;
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove("user_id"); // ✅ user_id만 삭제
@@ -151,6 +160,8 @@ class UserProvider with ChangeNotifier {
     await prefs.remove("profile_image");
     // ─── 여기부터 추가 ───
     await prefs.remove("is_admin");
+    await prefs.remove("points");
+
     notifyListeners();
   }
 }

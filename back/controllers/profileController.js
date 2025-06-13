@@ -43,7 +43,7 @@ const getUserProfile = async (req, res) => {
     try {
         const { userId } = req.params;
         const result = await pool.query(
-            "SELECT id, nickname, email, name, birth_date, gender, profile_image FROM users WHERE id = $1",
+            "SELECT id, nickname, email, name, birth_date, gender, profile_image, points FROM users WHERE id = $1",
             [userId]
         );
 
@@ -63,18 +63,18 @@ const getUserProfile = async (req, res) => {
                 birth_date: user.birth_date ?? "",
                 gender: user.gender ?? "",
                 //profile_image: user.profile_image ? `/uploads/${user.profile_image}` : ""
-                profile_image: user.profile_image || ""
-            }
+                profile_image: user.profile_image || "",
+                points: user.points            }
         });
         console.log("🔍 프로필 정보 반환:", {
             id: user.id,
             nickname: user.nickname,
             email: user.email,
-            name: user.name || "🚨 없음",  
+            name: user.name || "🚨 없음",
             birth_date: user.birth_date || "🚨 없음",
             gender: user.gender || "🚨 없음",
-            profile_image: user.profile_image
-        });
+            profile_image: user.profile_image,
+            points: user.points        });
     } catch (error) {
         console.error("❌ 프로필 불러오기 오류:", error);
         res.status(500).json({ error: "❌ 서버 오류 발생" });
