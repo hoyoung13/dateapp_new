@@ -1,5 +1,5 @@
 const pool = require('../config/db');
-//찜목록 만드는거
+const { addPointHistory } = require('./pointController');
 const createCollection = async (req, res) => {
   console.log("Received collection data:", req.body);
 
@@ -86,6 +86,8 @@ const createCollection = async (req, res) => {
         'UPDATE users SET points = COALESCE(points, 0) + 10 WHERE id = $1',
         [rows[0].user_id]
       );
+      await addPointHistory(rows[0].user_id, '장소 즐겨찾기', 10);
+
     }
 
     res.status(201).json({ message: "Place added to collection", data: result.rows[0] });

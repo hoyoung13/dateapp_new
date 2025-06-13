@@ -2,7 +2,7 @@
 const pool = require('../config/db');
 const express = require('express');
 const router = express.Router();
-// 코스 정보와 각 일정(장소)을 저장하는 함수
+const { addPointHistory } = require('./pointController');
 const createCourse = async (req, res) => {
   // 요청 본문에서 필요한 정보를 추출합니다.
   const {
@@ -62,21 +62,24 @@ const createCourse = async (req, res) => {
       await pool.query(insertScheduleQuery, scheduleValues);
     }
     if (favorite_from_course_id) {
-      await pool.query(
-        'UPDATE courses SET favorite_count = COALESCE(favorite_count, 0) + 1 WHERE id = $1',
-        [favorite_from_course_id]
-      );
-      const { rows } = await pool.query(
-        'SELECT user_id FROM courses WHERE id = $1',
-        [favorite_from_course_id]
-      );
-      if (rows.length) {
+
         await pool.query(
-          'UPDATE users SET points = COALESCE(points, 0) + 10 WHERE id = $1',
-          [rows[0].user_id]
+          'UPDATE courses SET favorite_count = COALESCE(favorite_count, 0) + 1 WHERE id = $1',
+          [favorite_from_course_id]
         );
+        const { rows } = await pool.query(
+          'SELECT user_id FROM courses WHERE id = $1',
+          [favorite_from_course_id]
+        );
+        if (rows.length) {
+          await pool.query(
+            'UPDATE users SET points = COALESCE(points, 0) + 10 WHERE id = $1',
+            [rows[0].user_id]
+          );
+          await addPointHistory(rows[0].user_id, '코스 즐겨찾기', 10);
+        }
       }
-    }
+    
     // 모든 쿼리 성공 시 커밋
     await pool.query('COMMIT');
     res.status(201).json({ message: "코스 저장 성공", course_id: courseId });

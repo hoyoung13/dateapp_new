@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const { addPointHistory } = require('./pointController');
 
 const getPlaceRequests = async (req, res) => {
   try {
@@ -17,11 +18,12 @@ const approvePlaceRequest = async (req, res) => {
      // 승인된 장소의 등록자에게 포인트 지급
      const { rows } = await pool.query('SELECT user_id FROM place_info WHERE id = $1', [id]);
      if (rows.length) {
-       await pool.query(
-         'UPDATE users SET points = COALESCE(points, 0) + 50 WHERE id = $1',
-         [rows[0].user_id]
-       );
-     }
+      await pool.query(
+        'UPDATE users SET points = COALESCE(points, 0) + 50 WHERE id = $1',
+        [rows[0].user_id]
+      );
+      await addPointHistory(rows[0].user_id, '장소 등록', 50);
+    }
     res.json({ message: 'Place approved' });
   } catch (err) {
     console.error('approvePlaceRequest error:', err);
