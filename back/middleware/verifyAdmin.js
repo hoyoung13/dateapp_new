@@ -2,16 +2,11 @@ const pool = require('../config/db');
 
 const verifyAdmin = async (req, res, next) => {
   try {
-    const userId =
-      req.body.user_id ||
-      req.params.user_id ||
-      req.query.user_id ||
-      req.headers['user_id'];
-    const parsedId = parseInt(userId, 10);
-    if (!parsedId) {
+    const userId = req.user && (req.user.userId || req.user.id);
+    if (!userId) {
       return res.status(401).json({ error: 'User ID required' });
     }
-    const { rows } = await pool.query('SELECT is_admin FROM users WHERE id=$1', [parsedId]);
+    const { rows } = await pool.query('SELECT is_admin FROM users WHERE id=$1', [userId]);
     if (rows.length && rows[0].is_admin === true) {
       return next();
     }
