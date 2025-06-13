@@ -21,6 +21,7 @@ import 'AICourse.dart';
 import 'all_courses_page.dart';
 import 'chatrooms.dart';
 import 'aichatscreen.dart';
+import 'shop_page.dart';
 
 void main() {
   runApp(const HomePage());
@@ -400,7 +401,12 @@ class _HomeContentState extends State<HomeContent> {
                 Navigator.push(context,
                     MaterialPageRoute(builder: (_) => const AllCoursesPage()));
               }),
-              _categoryButton('축제 행사', 'assets/icons/festival.png', () {}),
+              _categoryButton('포인트 상점', 'assets/icons/festival.png', () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ShopPage()),
+                );
+              }),
             ],
           ),
         ],

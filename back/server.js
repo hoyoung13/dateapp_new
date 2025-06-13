@@ -22,6 +22,7 @@ const placeReportRoutes = require('./routes/placeReportRoutes');
 const inquiryRoutes = require('./routes/inquiryRoutes');
 const postReportRoutes = require('./routes/postReportRoutes');
 const pointRoutes = require('./routes/pointRoutes');
+const shopRoutes = require('./routes/shopRoutes');
 
 dotenv.config(); // ✅ 환경 변수 로드
 
@@ -72,6 +73,7 @@ app.use('/admin', adminPlaceRoutes);
 app.use('/', placeReportRoutes);
 app.use('/', postReportRoutes);
 app.use('/', pointRoutes);
+app.use('/shop', shopRoutes);
 
 // ✅ 서버 실행
 const PORT = process.env.PORT || 5000;

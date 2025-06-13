@@ -8,6 +8,7 @@ import 'dart:io';
 import 'fri.dart';
 import 'inquiry_page.dart';
 import 'point_history_page.dart';
+import 'purchase_history_page.dart';
 
 class MyPage extends StatefulWidget {
   const MyPage({super.key});
@@ -175,6 +176,18 @@ class _MyPageState extends State<MyPage> {
                       context,
                       MaterialPageRoute(
                         builder: (_) => const PointHistoryPage(),
+                      ),
+                    );
+                  },
+                ),
+                _buildListTile(
+                  "포인트 구매 목록",
+                  Icons.shopping_cart,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const PurchaseHistoryPage(),
                       ),
                     );
                   },
