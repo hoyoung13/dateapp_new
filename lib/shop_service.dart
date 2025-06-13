@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'constants.dart';
 import 'dart:io';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ShopItem {
   final int id;
@@ -59,6 +60,17 @@ class Purchase {
 }
 
 class ShopService {
+  static Future<Map<String, String>> _authHeaders(
+      {bool json = true, int? userId}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    final headers = <String, String>{};
+    if (json) headers['Content-Type'] = 'application/json';
+    if (token != null) headers['Authorization'] = 'Bearer $token';
+    if (userId != null) headers['user_id'] = '$userId';
+    return headers;
+  }
+
   static Future<List<ShopItem>> fetchItems(String category) async {
     final resp =
         await http.get(Uri.parse('$BASE_URL/shop/items?category=$category'));
@@ -73,9 +85,11 @@ class ShopService {
   }
 
   static Future<Purchase> purchaseItem(int itemId) async {
+    final headers = await _authHeaders();
+
     final resp = await http.post(
       Uri.parse('$BASE_URL/shop/purchase'),
-      headers: {'Content-Type': 'application/json'},
+      headers: headers,
       body: jsonEncode({'item_id': itemId}),
     );
     if (resp.statusCode == 201) {
@@ -86,7 +100,9 @@ class ShopService {
   }
 
   static Future<List<Purchase>> fetchPurchaseHistory(int userId) async {
-    final resp = await http.get(Uri.parse('$BASE_URL/shop/purchases/$userId'));
+    final headers = await _authHeaders(json: false);
+    final resp = await http.get(Uri.parse('$BASE_URL/shop/purchases/$userId'),
+        headers: headers);
     if (resp.statusCode == 200) {
       final List<dynamic> data = jsonDecode(resp.body) as List<dynamic>;
       return data
@@ -98,10 +114,15 @@ class ShopService {
   }
 
   static Future<String> uploadItemImage(File image) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
     var request = http.MultipartRequest(
       'POST',
       Uri.parse('$BASE_URL/shop/admin/upload-item-image'),
     );
+    if (token != null) {
+      request.headers['Authorization'] = 'Bearer $token';
+    }
     request.files.add(await http.MultipartFile.fromPath('image', image.path));
     final response = await request.send();
     final respStr = await response.stream.bytesToString();
@@ -115,9 +136,11 @@ class ShopService {
 
   // Admin APIs
   static Future<List<ShopItem>> fetchAdminItems(int adminId) async {
+    final headers = await _authHeaders(userId: adminId);
+
     final resp = await http.get(
       Uri.parse('$BASE_URL/shop/admin/items'),
-      headers: {'Content-Type': 'application/json', 'user_id': '$adminId'},
+      headers: headers,
     );
     if (resp.statusCode == 200) {
       final List<dynamic> data = jsonDecode(resp.body) as List<dynamic>;
@@ -131,9 +154,11 @@ class ShopService {
 
   static Future<void> createItem(int adminId, String category, String name,
       String imageUrl, int pricePoints) async {
+    final headers = await _authHeaders(userId: adminId);
+
     final resp = await http.post(
       Uri.parse('$BASE_URL/shop/admin/items'),
-      headers: {'Content-Type': 'application/json', 'user_id': '$adminId'},
+      headers: headers,
       body: jsonEncode({
         'category': category,
         'name': name,
@@ -148,9 +173,11 @@ class ShopService {
 
   static Future<void> updateItem(int adminId, int id, String category,
       String name, String imageUrl, int pricePoints) async {
+    final headers = await _authHeaders(userId: adminId);
+
     final resp = await http.patch(
       Uri.parse('$BASE_URL/shop/admin/items/$id'),
-      headers: {'Content-Type': 'application/json', 'user_id': '$adminId'},
+      headers: headers,
       body: jsonEncode({
         'category': category,
         'name': name,
@@ -164,9 +191,11 @@ class ShopService {
   }
 
   static Future<void> deleteItem(int adminId, int id) async {
+    final headers = await _authHeaders(userId: adminId);
+
     final resp = await http.delete(
       Uri.parse('$BASE_URL/shop/admin/items/$id'),
-      headers: {'Content-Type': 'application/json', 'user_id': '$adminId'},
+      headers: headers,
     );
     if (resp.statusCode != 204) {
       throw Exception('Failed to delete item');
