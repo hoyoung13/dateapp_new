@@ -7,6 +7,7 @@ import 'place.dart';
 import 'dart:io';
 import 'fri.dart';
 import 'inquiry_page.dart';
+import 'point_history_page.dart';
 
 class MyPage extends StatefulWidget {
   const MyPage({super.key});
@@ -166,7 +167,18 @@ class _MyPageState extends State<MyPage> {
                         builder: (context) => const PlacePage()), // ✅ 이동
                   );
                 }),
-                _buildListTile("취향 설정", Icons.favorite),
+                _buildListTile(
+                  "포인트 내역",
+                  Icons.favorite,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const PointHistoryPage(),
+                      ),
+                    );
+                  },
+                ),
                 _buildListTile(
                   "친구 관리",
                   Icons.history,
