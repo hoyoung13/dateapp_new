@@ -66,6 +66,16 @@ const createCourse = async (req, res) => {
         'UPDATE courses SET favorite_count = COALESCE(favorite_count, 0) + 1 WHERE id = $1',
         [favorite_from_course_id]
       );
+      const { rows } = await pool.query(
+        'SELECT user_id FROM courses WHERE id = $1',
+        [favorite_from_course_id]
+      );
+      if (rows.length) {
+        await pool.query(
+          'UPDATE users SET points = COALESCE(points, 0) + 10 WHERE id = $1',
+          [rows[0].user_id]
+        );
+      }
     }
     // 모든 쿼리 성공 시 커밋
     await pool.query('COMMIT');

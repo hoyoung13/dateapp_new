@@ -74,8 +74,21 @@ const createCollection = async (req, res) => {
         RETURNING *;
       `;
       const values = [collection_id, place_id];
-      const result = await pool.query(query, values);
-      res.status(201).json({ message: "Place added to collection", data: result.rows[0] });
+    const result = await pool.query(query, values);
+
+    // 해당 장소를 등록한 사용자에게 포인트 지급
+    const { rows } = await pool.query(
+      'SELECT user_id FROM place_info WHERE id = $1',
+      [place_id]
+    );
+    if (rows.length) {
+      await pool.query(
+        'UPDATE users SET points = COALESCE(points, 0) + 10 WHERE id = $1',
+        [rows[0].user_id]
+      );
+    }
+
+    res.status(201).json({ message: "Place added to collection", data: result.rows[0] });
     } catch (error) {
       console.error("Error adding place to collection:", error);
       res.status(500).json({ error: "Server error" });

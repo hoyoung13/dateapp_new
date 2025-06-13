@@ -14,6 +14,14 @@ const approvePlaceRequest = async (req, res) => {
   const { id } = req.params;
   try {
     await pool.query('UPDATE place_info SET is_approved = true WHERE id = $1', [id]);
+     // 승인된 장소의 등록자에게 포인트 지급
+     const { rows } = await pool.query('SELECT user_id FROM place_info WHERE id = $1', [id]);
+     if (rows.length) {
+       await pool.query(
+         'UPDATE users SET points = COALESCE(points, 0) + 50 WHERE id = $1',
+         [rows[0].user_id]
+       );
+     }
     res.json({ message: 'Place approved' });
   } catch (err) {
     console.error('approvePlaceRequest error:', err);
