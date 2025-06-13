@@ -9,6 +9,6 @@ const { updatePlace, getPlaceByIdAdmin } = require('../controllers/placeControll
 router.get('/place-requests', authenticate, verifyAdmin, getPlaceRequests);
 router.post('/place-requests/:id/approve', authenticate, verifyAdmin, approvePlaceRequest);
 router.post('/place-requests/:id/reject', authenticate, verifyAdmin, rejectPlaceRequest);
-router.get('/places/:id', verifyAdmin, getPlaceByIdAdmin);
-router.patch('/places/:id', verifyAdmin, updatePlace);
+router.get('/places/:id', authenticate, verifyAdmin, getPlaceByIdAdmin);
+router.patch('/places/:id', authenticate, verifyAdmin, updatePlace);
 module.exports = router;

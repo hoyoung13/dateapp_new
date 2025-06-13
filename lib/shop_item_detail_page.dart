@@ -20,7 +20,7 @@ class _ShopItemDetailPageState extends State<ShopItemDetailPage> {
     if (userId == null) return;
     setState(() => _buying = true);
     try {
-      final p = await ShopService.purchaseItem(userId, widget.item.id);
+      final p = await ShopService.purchaseItem(widget.item.id);
       setState(() => _purchase = p);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'constants.dart';
 import 'user_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AdminEditPlacePage extends StatefulWidget {
   final int placeId;
@@ -38,10 +39,14 @@ class _AdminEditPlacePageState extends State<AdminEditPlacePage> {
 
   Future<void> _load() async {
     final uri = Uri.parse('$BASE_URL/admin/places/${widget.placeId}');
-    final resp = await http.get(uri, headers: {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    final headers = {
       'Content-Type': 'application/json',
       'user_id': '${_adminId}'
-    });
+    };
+    if (token != null) headers['Authorization'] = 'Bearer $token';
+    final resp = await http.get(uri, headers: headers);
     if (resp.statusCode == 200) {
       final data = jsonDecode(resp.body) as Map<String, dynamic>;
       setState(() {
@@ -61,8 +66,15 @@ class _AdminEditPlacePageState extends State<AdminEditPlacePage> {
 
   Future<void> _save() async {
     final uri = Uri.parse('$BASE_URL/admin/places/${widget.placeId}');
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    final headers = {
+      'Content-Type': 'application/json',
+      'user_id': '${_adminId}'
+    };
+    if (token != null) headers['Authorization'] = 'Bearer $token';
     await http.patch(uri,
-        headers: {'Content-Type': 'application/json', 'user_id': '${_adminId}'},
+        headers: headers,
         body: jsonEncode({
           'place_name': nameCtrl.text,
           'address': addressCtrl.text,
@@ -81,8 +93,7 @@ class _AdminEditPlacePageState extends State<AdminEditPlacePage> {
 
     final uri2 = Uri.parse('$BASE_URL/admin/place-reports/${widget.reportId}');
     await http.patch(uri2,
-        headers: {'Content-Type': 'application/json', 'user_id': '${_adminId}'},
-        body: jsonEncode({'message': '문의 내용이 수정되었습니다.'}));
+        headers: headers, body: jsonEncode({'message': '문의 내용이 수정되었습니다.'}));
     if (!mounted) return;
     Navigator.pop(context, true);
   }

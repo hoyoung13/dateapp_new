@@ -71,11 +71,11 @@ class ShopService {
     }
   }
 
-  static Future<Purchase> purchaseItem(int userId, int itemId) async {
+  static Future<Purchase> purchaseItem(int itemId) async {
     final resp = await http.post(
       Uri.parse('$BASE_URL/shop/purchase'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'user_id': userId, 'item_id': itemId}),
+      body: jsonEncode({'item_id': itemId}),
     );
     if (resp.statusCode == 201) {
       return Purchase.fromJson(jsonDecode(resp.body) as Map<String, dynamic>);

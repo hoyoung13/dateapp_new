@@ -50,7 +50,9 @@ class _LoginPageState extends State<LoginPage> {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool("isLoggedIn", true);
         await prefs.setInt("user_id", responseData["user"]["id"]);
-
+        if (responseData["token"] != null) {
+          await prefs.setString("token", responseData["token"]);
+        }
         // ─────────────────────────────────────────────────────────────────
         // ─── 이 아래부터 “isAdmin 분기”를 추가해야 합니다. ───
         // ─────────────────────────────────────────────────────────────────

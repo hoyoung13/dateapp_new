@@ -73,10 +73,12 @@ const deleteItem = async (req, res) => {
 };
 
 const purchaseItem = async (req, res) => {
-  const { user_id, item_id } = req.body;
-  if (!user_id || !item_id) {
-    return res.status(400).json({ error: 'user_id and item_id required' });
+    const { item_id } = req.body;
+    if (!item_id) {
+      return res.status(400).json({ error: 'item_id required' });
   }
+  const user_id = req.user && (req.user.userId || req.user.id);
+
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
