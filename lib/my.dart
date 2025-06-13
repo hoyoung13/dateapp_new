@@ -133,15 +133,17 @@ class _MyPageState extends State<MyPage> {
             color: Colors.white,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                Text("포인트",
+              children: [
+                const Text("포인트",
                     style:
                         TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                Text("0 P",
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.pink)),
+                Text(
+                  "${userProvider.points} P",
+                  style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.pink),
+                ),
               ],
             ),
           ),
