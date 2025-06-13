@@ -132,7 +132,13 @@ const getPurchaseHistory = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
-
+const uploadItemImage = async (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+    const imageUrl = `/uploads/${req.file.filename}`;
+    res.json({ image_url: imageUrl });
+  };
 module.exports = {
   listItems,
   getItem,
@@ -141,4 +147,5 @@ module.exports = {
   deleteItem,
   purchaseItem,
   getPurchaseHistory,
+  uploadItemImage,
 };

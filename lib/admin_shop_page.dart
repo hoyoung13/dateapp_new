@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'shop_service.dart';
 import 'user_provider.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'shop_constants.dart';
 
 class AdminShopPage extends StatefulWidget {
   const AdminShopPage({Key? key}) : super(key: key);
@@ -13,6 +16,9 @@ class AdminShopPage extends StatefulWidget {
 class _AdminShopPageState extends State<AdminShopPage> {
   late Future<List<ShopItem>> _future;
   int? _adminId;
+  String? _selectedCategory;
+  File? _pickedImage;
+  String? _uploadedImageUrl;
 
   @override
   void initState() {
@@ -32,10 +38,32 @@ class _AdminShopPageState extends State<AdminShopPage> {
     });
   }
 
+  Future<void> _uploadItemImage(File image) async {
+    try {
+      final url = await ShopService.uploadItemImage(image);
+      setState(() {
+        _uploadedImageUrl = url;
+        _pickedImage = image;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('이미지 업로드 실패')));
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      await _uploadItemImage(File(pickedFile.path));
+    }
+  }
+
   Future<void> _showItemDialog({ShopItem? item}) async {
-    final categoryCtrl = TextEditingController(text: item?.category ?? '');
+    _selectedCategory = item?.category ?? shopCategories.first;
+    _uploadedImageUrl = item?.imageUrl;
+    _pickedImage = null;
     final nameCtrl = TextEditingController(text: item?.name ?? '');
-    final imageCtrl = TextEditingController(text: item?.imageUrl ?? '');
     final priceCtrl =
         TextEditingController(text: item != null ? '${item.pricePoints}' : '');
     final isNew = item == null;
@@ -48,17 +76,27 @@ class _AdminShopPageState extends State<AdminShopPage> {
           content: SingleChildScrollView(
             child: Column(
               children: [
-                TextField(
-                  controller: categoryCtrl,
+                DropdownButtonFormField<String>(
+                  value: _selectedCategory,
+                  items: shopCategories
+                      .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                      .toList(),
+                  onChanged: (v) => setState(() => _selectedCategory = v),
                   decoration: const InputDecoration(labelText: '카테고리'),
                 ),
                 TextField(
                   controller: nameCtrl,
                   decoration: const InputDecoration(labelText: '이름'),
                 ),
-                TextField(
-                  controller: imageCtrl,
-                  decoration: const InputDecoration(labelText: '이미지 URL'),
+                const SizedBox(height: 8),
+                if (_pickedImage != null)
+                  Image.file(_pickedImage!, height: 80)
+                else if (_uploadedImageUrl != null &&
+                    _uploadedImageUrl!.isNotEmpty)
+                  Image.network(_uploadedImageUrl!, height: 80),
+                TextButton(
+                  onPressed: _pickImage,
+                  child: const Text('이미지 선택'),
                 ),
                 TextField(
                   controller: priceCtrl,
@@ -75,9 +113,9 @@ class _AdminShopPageState extends State<AdminShopPage> {
             ),
             TextButton(
               onPressed: () async {
-                final category = categoryCtrl.text;
+                final category = _selectedCategory ?? shopCategories.first;
                 final name = nameCtrl.text;
-                final image = imageCtrl.text;
+                final image = _uploadedImageUrl ?? '';
                 final price = int.tryParse(priceCtrl.text) ?? 0;
                 if (isNew) {
                   await ShopService.createItem(

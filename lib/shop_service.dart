@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'constants.dart';
+import 'dart:io';
 
 class ShopItem {
   final int id;
@@ -93,6 +94,22 @@ class ShopService {
           .toList();
     } else {
       throw Exception('Failed to load purchase history');
+    }
+  }
+
+  static Future<String> uploadItemImage(File image) async {
+    var request = http.MultipartRequest(
+      'POST',
+      Uri.parse('$BASE_URL/shop/admin/upload-item-image'),
+    );
+    request.files.add(await http.MultipartFile.fromPath('image', image.path));
+    final response = await request.send();
+    final respStr = await response.stream.bytesToString();
+    if (response.statusCode == 200) {
+      final data = jsonDecode(respStr) as Map<String, dynamic>;
+      return data['image_url'] as String;
+    } else {
+      throw Exception('Failed to upload image');
     }
   }
 

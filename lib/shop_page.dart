@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'shop_service.dart';
 import 'user_provider.dart';
 import 'shop_item_detail_page.dart';
+import 'shop_constants.dart';
 
 class ShopPage extends StatefulWidget {
   const ShopPage({Key? key}) : super(key: key);
@@ -14,7 +15,7 @@ class ShopPage extends StatefulWidget {
 class _ShopPageState extends State<ShopPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final List<String> _categories = ['GS25', 'CU', '7-ELEVEN', '상품권'];
+  final List<String> _categories = shopCategories;
 
   @override
   void initState() {
