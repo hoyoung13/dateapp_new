@@ -95,4 +95,64 @@ class ShopService {
       throw Exception('Failed to load purchase history');
     }
   }
+
+  // Admin APIs
+  static Future<List<ShopItem>> fetchAdminItems(int adminId) async {
+    final resp = await http.get(
+      Uri.parse('$BASE_URL/shop/admin/items'),
+      headers: {'Content-Type': 'application/json', 'user_id': '$adminId'},
+    );
+    if (resp.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(resp.body) as List<dynamic>;
+      return data
+          .map((e) => ShopItem.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } else {
+      throw Exception('Failed to load items');
+    }
+  }
+
+  static Future<void> createItem(int adminId, String category, String name,
+      String imageUrl, int pricePoints) async {
+    final resp = await http.post(
+      Uri.parse('$BASE_URL/shop/admin/items'),
+      headers: {'Content-Type': 'application/json', 'user_id': '$adminId'},
+      body: jsonEncode({
+        'category': category,
+        'name': name,
+        'image_url': imageUrl,
+        'price_points': pricePoints,
+      }),
+    );
+    if (resp.statusCode != 201) {
+      throw Exception('Failed to create item');
+    }
+  }
+
+  static Future<void> updateItem(int adminId, int id, String category,
+      String name, String imageUrl, int pricePoints) async {
+    final resp = await http.patch(
+      Uri.parse('$BASE_URL/shop/admin/items/$id'),
+      headers: {'Content-Type': 'application/json', 'user_id': '$adminId'},
+      body: jsonEncode({
+        'category': category,
+        'name': name,
+        'image_url': imageUrl,
+        'price_points': pricePoints,
+      }),
+    );
+    if (resp.statusCode != 200) {
+      throw Exception('Failed to update item');
+    }
+  }
+
+  static Future<void> deleteItem(int adminId, int id) async {
+    final resp = await http.delete(
+      Uri.parse('$BASE_URL/shop/admin/items/$id'),
+      headers: {'Content-Type': 'application/json', 'user_id': '$adminId'},
+    );
+    if (resp.statusCode != 204) {
+      throw Exception('Failed to delete item');
+    }
+  }
 }

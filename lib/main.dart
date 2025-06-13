@@ -45,6 +45,7 @@ import 'inquiry_page.dart';
 import 'course_detail_loader.dart';
 import 'admin_edit_place_page.dart';
 import 'admin_post_reports_page.dart';
+import 'admin_shop_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -109,6 +110,8 @@ class MyApp extends StatelessWidget {
         '/admin/place-reports': (context) => const AdminPlaceReportsPage(),
         '/admin/inquiries': (context) => const AdminInquiryListPage(),
         '/admin/post-reports': (context) => const AdminPostReportsPage(),
+        '/admin/shop': (context) => const AdminShopPage(),
+
         //'/admin/inquiries': (context) => const AdminInquiryListPage(),
         '/admin/edit-place': (context) {
           final args = ModalRoute.of(context)!.settings.arguments
