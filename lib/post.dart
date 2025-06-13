@@ -31,7 +31,7 @@ class PostPage extends StatefulWidget {
   final int postId; // ✅ 게시글 ID
   final int? reportId;
 
-  const PostPage({super.key, required this.postId});
+  const PostPage({super.key, required this.postId, this.reportId});
 
   @override
   _PostPageState createState() => _PostPageState();
@@ -168,7 +168,7 @@ class _PostPageState extends State<PostPage> {
     );
   }
 
-  Future<void> _deletePost() async {
+  Future<void> _deletePost({bool navigateBack = true}) async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     int? userId = userProvider.userId;
     try {
@@ -180,7 +180,7 @@ class _PostPageState extends State<PostPage> {
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text('게시글이 삭제되었습니다.')));
-        Navigator.of(context).pop();
+        if (navigateBack) Navigator.of(context).pop();
       } else {
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text('삭제에 실패했습니다.')));
@@ -222,6 +222,23 @@ class _PostPageState extends State<PostPage> {
     }
   }
 
+  Future<void> _updateReport(bool deletePost) async {
+    if (widget.reportId == null) return;
+    final adminId = Provider.of<UserProvider>(context, listen: false).userId;
+    final uri = Uri.parse('$BASE_URL/admin/post-reports/${widget.reportId}');
+    await http.patch(uri,
+        headers: {
+          'Content-Type': 'application/json',
+          if (adminId != null) 'user_id': '$adminId'
+        },
+        body: jsonEncode({
+          'delete_post': deletePost,
+          'message': deletePost
+              ? '해당 게시글은 신고 사유로 인해 삭제되었습니다.'
+              : '유저님이 신고하신 게시글은 문제가 없습니다.'
+        }));
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_post == null) {
@@ -231,12 +248,36 @@ class _PostPageState extends State<PostPage> {
     }
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final userId = userProvider.userId;
+    final isAdmin = userProvider.isAdmin;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("게시글 보기"),
         backgroundColor: Colors.cyan[100],
         actions: [
-          if (_post!["user_id"] == userId)
+          if (isAdmin && widget.reportId != null)
+            Row(
+              children: [
+                TextButton(
+                  onPressed: () async {
+                    await _deletePost(navigateBack: false);
+                    await _updateReport(true);
+                    if (!mounted) return;
+                    Navigator.pop(context, true);
+                  },
+                  child: const Text('삭제', style: TextStyle(color: Colors.red)),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    await _updateReport(false);
+                    if (!mounted) return;
+                    Navigator.pop(context, true);
+                  },
+                  child: const Text('문제 없음'),
+                ),
+              ],
+            )
+          else if (_post!["user_id"] == userId)
             IconButton(
               icon: const Icon(Icons.delete),
               onPressed: () {

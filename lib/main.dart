@@ -44,6 +44,7 @@ import 'admin_inquiry_list_page.dart';
 import 'inquiry_page.dart';
 import 'course_detail_loader.dart';
 import 'admin_edit_place_page.dart';
+import 'admin_post_reports_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -107,6 +108,7 @@ class MyApp extends StatelessWidget {
         '/admin/place-requests': (context) => const AdminPlaceRequestsPage(),
         '/admin/place-reports': (context) => const AdminPlaceReportsPage(),
         '/admin/inquiries': (context) => const AdminInquiryListPage(),
+        '/admin/post-reports': (context) => const AdminPostReportsPage(),
         //'/admin/inquiries': (context) => const AdminInquiryListPage(),
         '/admin/edit-place': (context) {
           final args = ModalRoute.of(context)!.settings.arguments
@@ -141,10 +143,19 @@ class MyApp extends StatelessWidget {
           );
         }
         if (settings.name == '/post') {
-          final int postId = settings.arguments as int;
-          return MaterialPageRoute(
-            builder: (context) => PostPage(postId: postId),
-          );
+          final args = settings.arguments;
+          if (args is int) {
+            return MaterialPageRoute(
+              builder: (context) => PostPage(postId: args),
+            );
+          } else if (args is Map<String, dynamic>) {
+            return MaterialPageRoute(
+              builder: (context) => PostPage(
+                postId: args['postId'] as int,
+                reportId: args['reportId'] as int?,
+              ),
+            );
+          }
         } else if (settings.name == '/price') {
           final Map<String, dynamic> args =
               settings.arguments as Map<String, dynamic>;
