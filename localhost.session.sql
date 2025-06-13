@@ -5,5 +5,6 @@ CREATE TABLE users (
     password TEXT NOT NULL,
     name VARCHAR(50),
     birth_date DATE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    points INT DEFAULT 0
 );

@@ -13,8 +13,8 @@ const registerUser = async (req, res) => {
 
         // 여기는 회원가입 기본정보 저장
         const newUserResult = await pool.query(
-            "INSERT INTO users (nickname, email, password, name, birth_date, gender) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-            [nickname, email, hashedPassword, name, birth_date, gender]
+            "INSERT INTO users (nickname, email, password, name, birth_date, gender, points) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
+            [nickname, email, hashedPassword, name, birth_date, gender, 0]
         );
         const newUser = newUserResult.rows[0];
 
@@ -42,8 +42,8 @@ const loginUser = async (req, res) => {
     try {
       const { email, password } = req.body;
       const result = await pool.query(
-        // 기존 SELECT문에 is_admin 칼럼만 추가
-        "SELECT id, nickname, email, name, birth_date, gender, profile_image, password, is_admin FROM users WHERE email = $1",
+        // 로그인 시 포인트와 관리자 여부까지 조회
+        "SELECT id, nickname, email, name, birth_date, gender, profile_image, password, is_admin, points FROM users WHERE email = $1",
         [email]
       );
   
@@ -84,7 +84,8 @@ const loginUser = async (req, res) => {
           birth_date: user.birth_date || "",
           gender: user.gender || "",
           profile_image: profileImage || "",
-          isAdmin: user.is_admin    // ← 이 부분이 새로 추가된 값
+          isAdmin: user.is_admin,   // 관리자 여부
+          points: user.points
         }
       });
   
@@ -96,7 +97,8 @@ const loginUser = async (req, res) => {
         birth_date: user.birth_date || "🚨 없음",
         gender: user.gender || "🚨 없음",
         profile_image: user.profile_image,
-        isAdmin: user.is_admin
+        isAdmin: user.is_admin,
+        points: user.points
       });
     } catch (error) {
       console.error(error.message);
@@ -225,7 +227,7 @@ const getUserProfile = async (req, res) => {
 
     try {
         const result = await pool.query(
-            "SELECT id, name, nickname, email, birth_date, gender, profile_image FROM users WHERE id = $1",
+            "SELECT id, name, nickname, email, birth_date, gender, profile_image, points FROM users WHERE id = $1",
             [userId]
         );
 
