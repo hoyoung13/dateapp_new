@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'shop_service.dart';
 import 'user_provider.dart';
+import 'image_utils.dart';
 
 class PurchaseHistoryPage extends StatefulWidget {
   const PurchaseHistoryPage({Key? key}) : super(key: key);
@@ -54,7 +55,7 @@ class _PurchaseHistoryPageState extends State<PurchaseHistoryPage> {
               final item = items[index];
               return ListTile(
                 leading: item.imageUrl.isNotEmpty
-                    ? Image.network(item.imageUrl)
+                    ? Image.network(resolveImageUrl(item.imageUrl))
                     : null,
                 title: Text(item.itemName),
                 subtitle: Text(_formatDate(item.purchasedAt)),

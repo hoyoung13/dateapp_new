@@ -1,18 +1,18 @@
 const db = require("../config/db");
 exports.getPosts = async (req, res) => {
-  const { boardId, user_id } = req.query;  // ✅ user_id 추가
+  const { boardId, user_id, search } = req.query;  // ✅ user_id 추가
 
   console.log("📌 받은 boardId:", boardId);
   console.log("📌 받은 user_id:", user_id); // ✅ user_id 로그 확인
 
   try {
     let query = `
-      SELECT posts.*, 
-             boards.name AS board_name, 
+      SELECT posts.*,
+             boards.name AS board_name,
              users.nickname AS nickname,
-             COALESCE(pr.reaction, 0) AS user_reaction, -- ✅ 좋아요/싫어요 상태
-             CASE 
-               WHEN posts.user_id = $1 THEN TRUE  -- ✅ 본인이 작성한 게시글인지 확인
+             COALESCE(pr.reaction, 0) AS user_reaction,
+             CASE
+               WHEN posts.user_id = $1 THEN TRUE
                ELSE FALSE
              END AS is_owner
       FROM posts
@@ -22,16 +22,26 @@ exports.getPosts = async (req, res) => {
         ON posts.id = pr.post_id AND pr.user_id = $1  
     `;
 
-    let params = [user_id || null]; // ✅ user_id 기본값 설정
-
+    let params = [user_id || null];
+    const conditions = [];
     // 📌 boardId가 있으면 특정 게시판만 조회
     if (boardId) {
-      query += ` WHERE posts.board_id = $2 `;
       params.push(boardId);
+      conditions.push(`posts.board_id = $${params.length}`);
+
     }
 
-    query += ` ORDER BY posts.created_at DESC;`;
+    if (search) {
+      params.push(`%${search}%`);
+      const idx = params.length;
+      conditions.push(`(posts.title ILIKE $${idx} OR posts.content ILIKE $${idx})`);
+    }
 
+    if (conditions.length) {
+      query += ' WHERE ' + conditions.join(' AND ');
+    }
+
+    query += ' ORDER BY posts.created_at DESC;';
     console.log("📌 실행할 SQL:", query);
     console.log("📌 SQL 실행 파라미터:", params);
 

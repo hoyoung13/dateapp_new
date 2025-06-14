@@ -38,6 +38,22 @@ const createCollection = async (req, res) => {
       res.status(500).json({ error: "Server error" });
     }
   };
+  const getPublicCollections = async (req, res) => {
+    try {
+      const query = `
+        SELECT c.*, u.nickname
+        FROM collections c
+        JOIN users u ON c.user_id = u.id
+        WHERE c.is_public = true
+        ORDER BY c.created_at DESC;
+      `;
+      const result = await pool.query(query);
+      res.status(200).json({ collections: result.rows });
+    } catch (error) {
+      console.error("Error fetching public collections:", error);
+      res.status(500).json({ error: "Server error" });
+    }
+  };
   //삭제기능
   const deleteCollection = async (req, res) => {
     console.log("DELETE 요청:", req.method, req.url);
@@ -123,4 +139,4 @@ const createCollection = async (req, res) => {
     }
   };
   
-  module.exports = { createCollection, getCollectionsByUser,deleteCollection,addPlaceToCollection,getPlacesInCollection };
+  module.exports = { createCollection, getCollectionsByUser, getPublicCollections, deleteCollection, addPlaceToCollection, getPlacesInCollection };

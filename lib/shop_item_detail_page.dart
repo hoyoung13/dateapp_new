@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'user_provider.dart';
 import 'shop_service.dart';
+import 'image_utils.dart';
 
 class ShopItemDetailPage extends StatefulWidget {
   final ShopItem item;
@@ -41,7 +42,10 @@ class _ShopItemDetailPageState extends State<ShopItemDetailPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             if (widget.item.imageUrl.isNotEmpty)
-              Image.network(widget.item.imageUrl, height: 150),
+              Image.network(
+                resolveImageUrl(widget.item.imageUrl),
+                height: 150,
+              ),
             const SizedBox(height: 16),
             Text('${widget.item.pricePoints} 포인트',
                 style:

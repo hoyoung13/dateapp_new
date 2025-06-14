@@ -4,6 +4,7 @@ import 'shop_service.dart';
 import 'user_provider.dart';
 import 'shop_item_detail_page.dart';
 import 'shop_constants.dart';
+import 'image_utils.dart';
 
 class ShopPage extends StatefulWidget {
   const ShopPage({Key? key}) : super(key: key);
@@ -91,7 +92,10 @@ class _ShopPageState extends State<ShopPage>
                   children: [
                     if (item.imageUrl.isNotEmpty)
                       Expanded(
-                        child: Image.network(item.imageUrl, fit: BoxFit.cover),
+                        child: Image.network(
+                          resolveImageUrl(item.imageUrl),
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     const SizedBox(height: 4),
                     Text(item.name),

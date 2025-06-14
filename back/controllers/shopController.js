@@ -1,5 +1,6 @@
 const pool = require('../config/db');
 const { addPointHistory } = require('./pointController');
+const BASE_URL = process.env.BASE_URL || '';
 
 const listItems = async (req, res) => {
   const { category } = req.query;
@@ -136,7 +137,8 @@ const uploadItemImage = async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
-    const imageUrl = `/uploads/${req.file.filename}`;
+    const relative = `/uploads/${req.file.filename}`;
+    const imageUrl = BASE_URL ? `${BASE_URL}${relative}` : relative;
     res.json({ image_url: imageUrl });
   };
 module.exports = {

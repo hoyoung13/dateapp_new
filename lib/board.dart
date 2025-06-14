@@ -41,6 +41,8 @@ class BoardPage extends StatefulWidget {
 class _BoardPageState extends State<BoardPage> {
   int _selectedTabIndex = 0; // ✅ 선택된 탭 인덱스
   int _selectedIndex = 1; // ✅ 기본 선택값 (커뮤니티)
+  String _searchKeyword = '';
+  final TextEditingController _searchController = TextEditingController();
 
   final List<String> _tabTitles = ["모든 게시판", "질문 게시판", "추천 게시판", "자유 게시판"];
   List<Map<String, dynamic>> _posts = []; // ✅ 게시글 데이터 저장할 리스트
@@ -81,7 +83,9 @@ class _BoardPageState extends State<BoardPage> {
           apiUrl += "&boardId=$boardId";
         }
       }
-
+      if (_searchKeyword.isNotEmpty) {
+        apiUrl += "&search=${Uri.encodeComponent(_searchKeyword)}";
+      }
       print("📌 요청할 API URL: $apiUrl");
 
       final response = await http.get(Uri.parse(apiUrl));
@@ -151,6 +155,41 @@ class _BoardPageState extends State<BoardPage> {
     }
   }
 
+  void _showSearchDialog() {
+    _searchController.text = _searchKeyword;
+    showDialog(
+      context: context,
+      builder: (context) {
+        String temp = _searchKeyword;
+        return AlertDialog(
+          title: const Text('검색'),
+          content: TextField(
+            controller: _searchController,
+            autofocus: true,
+            onChanged: (v) => temp = v,
+            decoration: const InputDecoration(hintText: '검색어 입력'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('취소'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                setState(() {
+                  _searchKeyword = temp;
+                });
+                _fetchPosts();
+              },
+              child: const Text('검색'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -172,7 +211,8 @@ class _BoardPageState extends State<BoardPage> {
               }
             },
           ),
-          IconButton(icon: const Icon(Icons.search), onPressed: () {}),
+          IconButton(
+              icon: const Icon(Icons.search), onPressed: _showSearchDialog),
         ],
       ),
       body: Column(

@@ -5,6 +5,7 @@ import 'user_provider.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'shop_constants.dart';
+import 'image_utils.dart';
 
 class AdminShopPage extends StatefulWidget {
   const AdminShopPage({Key? key}) : super(key: key);
@@ -93,7 +94,10 @@ class _AdminShopPageState extends State<AdminShopPage> {
                   Image.file(_pickedImage!, height: 80)
                 else if (_uploadedImageUrl != null &&
                     _uploadedImageUrl!.isNotEmpty)
-                  Image.network(_uploadedImageUrl!, height: 80),
+                  Image.network(
+                    resolveImageUrl(_uploadedImageUrl!),
+                    height: 80,
+                  ),
                 TextButton(
                   onPressed: _pickImage,
                   child: const Text('이미지 선택'),

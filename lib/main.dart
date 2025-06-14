@@ -46,6 +46,7 @@ import 'course_detail_loader.dart';
 import 'admin_edit_place_page.dart';
 import 'admin_post_reports_page.dart';
 import 'admin_shop_page.dart';
+import 'public_collections_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -111,6 +112,7 @@ class MyApp extends StatelessWidget {
         '/admin/inquiries': (context) => const AdminInquiryListPage(),
         '/admin/post-reports': (context) => const AdminPostReportsPage(),
         '/admin/shop': (context) => const AdminShopPage(),
+        '/publicCollections': (context) => const PublicCollectionsPage(),
 
         //'/admin/inquiries': (context) => const AdminInquiryListPage(),
         '/admin/edit-place': (context) {

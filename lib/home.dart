@@ -22,6 +22,8 @@ import 'all_courses_page.dart';
 import 'chatrooms.dart';
 import 'aichatscreen.dart';
 import 'shop_page.dart';
+import 'foodplace.dart';
+import 'public_collections_page.dart';
 
 void main() {
   runApp(const HomePage());
@@ -153,6 +155,7 @@ class _HomeContentState extends State<HomeContent> {
   List<Map<String, dynamic>>? cafeRanking; // main_category = '카페'
   List<Map<String, dynamic>>? spotRanking; // main_category = '장소'
   List<Map<String, dynamic>>? playRanking; // main_category = '놀거리'
+  List<Map<String, dynamic>>? seeRanking; // main_category = '보기'
 
   // ─────────── 배너 슬라이더 상태 ───────────
   int _currentBannerIndex = 0;
@@ -178,6 +181,7 @@ class _HomeContentState extends State<HomeContent> {
     _fetchCategoryRanking('카페'); // 카페
     _fetchCategoryRanking('장소'); // 장소
     _fetchCategoryRanking('놀거리'); // 놀거리
+    _fetchCategoryRanking('보기'); // 보기
   }
 
   // ─────────── 지역 JSON 불러오기 ───────────
@@ -235,6 +239,10 @@ class _HomeContentState extends State<HomeContent> {
       case '놀거리':
         setter = (v) => setState(() => playRanking = v);
         setState(() => playRanking = null);
+        break;
+      case '보기':
+        setter = (v) => setState(() => seeRanking = v);
+        setState(() => seeRanking = null);
         break;
       default:
         return;
@@ -304,6 +312,11 @@ class _HomeContentState extends State<HomeContent> {
           _buildRankingSection(
             title: _getRankingTitle("데이트 놀거리 랭킹"),
             data: playRanking,
+          ),
+          const SizedBox(height: 20),
+          _buildRankingSection(
+            title: _getRankingTitle("데이트 보기 랭킹"),
+            data: seeRanking,
           ),
           const SizedBox(height: 20),
         ],
@@ -379,6 +392,14 @@ class _HomeContentState extends State<HomeContent> {
                 Navigator.push(context,
                     MaterialPageRoute(builder: (_) => const PlayPage()));
               }),
+              _categoryButton('보기', 'assets/icons/look.png', () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const SeePage()));
+              }),
+              _categoryButton('보기', 'assets/icons/play.png', () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const SeePage()));
+              }),
             ],
           ),
           const SizedBox(height: 10),
@@ -400,6 +421,12 @@ class _HomeContentState extends State<HomeContent> {
               _categoryButton('사용자 코스', 'assets/icons/user_course.png', () {
                 Navigator.push(context,
                     MaterialPageRoute(builder: (_) => const AllCoursesPage()));
+              }),
+              _categoryButton('사용자 컬렉션', 'assets/icons/user_course.png', () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const PublicCollectionsPage()));
               }),
               _categoryButton('포인트 상점', 'assets/icons/festival.png', () {
                 Navigator.push(
@@ -620,11 +647,11 @@ class _HomeContentState extends State<HomeContent> {
 
               return GestureDetector(
                 onTap: () {
-                  // 상세 페이지로 이동 (place['id']를 이용)
-                  Navigator.pushNamed(
+                  Navigator.push(
                     context,
-                    '/placeDetail',
-                    arguments: {"id": place['id']},
+                    MaterialPageRoute(
+                      builder: (_) => PlaceInPageUIOnly(payload: place),
+                    ),
                   );
                 },
                 child: Column(
