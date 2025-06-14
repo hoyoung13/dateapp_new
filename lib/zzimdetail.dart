@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'constants.dart';
 import 'zzim.dart';
 import 'foodplace.dart';
+import 'dart:io';
 
 class CollectionDetailPage extends StatefulWidget {
   final Map<String, dynamic> collection;
@@ -353,8 +354,41 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
         (place['hashtags'] != null && place['hashtags'] is List)
             ? List<String>.from(place['hashtags'])
             : [];
-
-    return Container(
+    Widget imageWidget;
+    if (imageUrl != null) {
+      if (imageUrl.startsWith('http')) {
+        imageWidget = Image.network(
+          imageUrl,
+          fit: BoxFit.cover,
+          height: 180,
+          width: double.infinity,
+        );
+      } else if (imageUrl.startsWith('/data/') ||
+          imageUrl.startsWith('file://')) {
+        imageWidget = Image.file(
+          File(imageUrl),
+          fit: BoxFit.cover,
+          height: 180,
+          width: double.infinity,
+        );
+      } else {
+        final fullUrl = '$BASE_URL$imageUrl';
+        imageWidget = Image.network(
+          fullUrl,
+          fit: BoxFit.cover,
+          height: 180,
+          width: double.infinity,
+        );
+      }
+    } else {
+      imageWidget = Container(
+        color: Colors.grey.shade300,
+        height: 180,
+        width: double.infinity,
+        child: const Center(child: Text('이미지 없음')),
+      );
+    }
+    final card = Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -367,19 +401,7 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
           // 이미지 영역
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-            child: (imageUrl != null && imageUrl.startsWith("http"))
-                ? Image.network(
-                    imageUrl,
-                    fit: BoxFit.cover,
-                    height: 180,
-                    width: double.infinity,
-                  )
-                : Container(
-                    color: Colors.grey.shade300,
-                    height: 180,
-                    width: double.infinity,
-                    child: const Center(child: Text("이미지 없음")),
-                  ),
+            child: imageWidget,
           ),
           const SizedBox(height: 8),
           // 카테고리 (연한 회색)
@@ -471,6 +493,17 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
           const SizedBox(height: 8),
         ],
       ),
+    );
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => PlaceInPageUIOnly(payload: place),
+          ),
+        );
+      },
+      child: card,
     );
   }
 }
