@@ -24,15 +24,13 @@ class _CourseDetailLoaderPageState extends State<CourseDetailLoaderPage> {
   }
 
   Future<CourseModel?> _fetchCourse() async {
-    final resp = await http.get(Uri.parse('$BASE_URL/course/allcourse'));
+    final resp = await http
+        .get(Uri.parse('$BASE_URL/course/courses/${widget.courseId}'));
     if (resp.statusCode == 200) {
       final decoded = json.decode(resp.body) as Map<String, dynamic>;
-      final rawList = decoded['courses'] as List<dynamic>? ?? [];
-      for (final c in rawList) {
-        if (c['id'] == widget.courseId ||
-            '${c['id']}' == widget.courseId.toString()) {
-          return CourseModel.fromJson(c);
-        }
+      final map = decoded['course'] as Map<String, dynamic>?;
+      if (map != null) {
+        return CourseModel.fromJson(map);
       }
     }
     return null;

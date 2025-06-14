@@ -129,6 +129,57 @@ const getCoursesByUser = async (req, res) => {
     res.status(500).json({ error: "코스 불러오기 실패" });
   }
 };
+const getCourseById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const courseQuery = `
+      SELECT id, user_id, course_name, course_description, hashtags,
+             selected_date, with_who, purpose, share_count, favorite_count
+      FROM courses
+      WHERE id = $1
+    `;
+    const courseResult = await pool.query(courseQuery, [id]);
+    if (courseResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+    const c = courseResult.rows[0];
+
+    const schedulesQuery = `
+      SELECT schedule_order, place_id, place_name, place_address, place_image
+      FROM course_schedules
+      WHERE course_id = $1
+      ORDER BY schedule_order ASC
+    `;
+    const schedulesResult = await pool.query(schedulesQuery, [id]);
+
+    const schedules = schedulesResult.rows.map((row) => ({
+      placeId: row.place_id,
+      placeName: row.place_name,
+      placeAddress: row.place_address,
+      placeImage: row.place_image,
+    }));
+
+    const course = {
+      id: c.id,
+      userId: c.user_id,
+      courseName: c.course_name,
+      courseDescription: c.course_description,
+      hashtags: c.hashtags,
+      selectedDate: c.selected_date,
+      withWho: c.with_who,
+      purpose: c.purpose,
+      schedules,
+      shareCount: c.share_count || 0,
+      favoriteCount: c.favorite_count || 0,
+    };
+
+    return res.status(200).json({ course });
+  } catch (err) {
+    console.error('getCourseById error:', err);
+    return res.status(500).json({ error: '서버 오류' });
+  }
+};
 const updateCourse = async (req, res) => {
   const courseId = parseInt(req.params.id, 10);
   const {
@@ -364,4 +415,4 @@ const getAllCourses = async (req, res) => {
   }
 };
 
-module.exports = { createCourse,getCoursesByUser,updateCourse,deleteCourse,getAllCourses };
+module.exports = { createCourse,getCoursesByUser,getCourseById,updateCourse,deleteCourse,getAllCourses };
