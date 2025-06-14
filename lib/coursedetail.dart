@@ -9,8 +9,13 @@ import 'constants.dart';
 import 'dart:convert';
 import 'map.dart' hide NLatLng;
 import 'foodplace.dart';
+import 'package:provider/provider.dart';
+import 'user_provider.dart';
+import 'course_edit_page.dart';
 
 class CourseDetailPage extends StatefulWidget {
+  final int courseId;
+  final int courseOwnerId;
   final String courseName; // 코스 이름
   final String courseDescription; // 코스 설명
   final List<String> withWho; // 누구랑
@@ -20,6 +25,8 @@ class CourseDetailPage extends StatefulWidget {
 
   const CourseDetailPage({
     Key? key,
+    required this.courseId,
+    required this.courseOwnerId,
     required this.courseName,
     required this.courseDescription,
     required this.withWho,
@@ -399,7 +406,39 @@ class _CourseDetailPageState extends State<CourseDetailPage>
                 ),
               ),
             ),
-
+            if (Provider.of<UserProvider>(context).userId ==
+                widget.courseOwnerId)
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: ElevatedButton(
+                  onPressed: () {
+                    final model = CourseModel(
+                      id: widget.courseId,
+                      userId: widget.courseOwnerId,
+                      courseName: widget.courseName,
+                      courseDescription: widget.courseDescription,
+                      hashtags: widget.hashtags,
+                      selectedDate: null,
+                      withWho: widget.withWho,
+                      purpose: widget.purpose,
+                      schedules: widget.schedules,
+                    );
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => CourseEditPage(course: model),
+                      ),
+                    );
+                  },
+                  child: const Text('수정하기'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.cyan[100],
+                    foregroundColor: Colors.black,
+                    minimumSize: const Size.fromHeight(50),
+                  ),
+                ),
+              ),
             const SizedBox(height: 24),
             // 등록 버튼 등은 제거
           ],

@@ -434,6 +434,8 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
           context,
           MaterialPageRoute(
             builder: (_) => CourseDetailPage(
+              courseId: course.id,
+              courseOwnerId: course.userId,
               courseName: course.courseName,
               courseDescription: course.courseDescription,
               withWho: course.withWho,

@@ -53,6 +53,8 @@ class _CourseDetailLoaderPageState extends State<CourseDetailLoaderPage> {
         }
         final course = snapshot.data!;
         return CourseDetailPage(
+          courseId: course.id,
+          courseOwnerId: course.userId,
           courseName: course.courseName,
           courseDescription: course.courseDescription,
           withWho: course.withWho,

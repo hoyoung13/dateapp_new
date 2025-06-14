@@ -326,6 +326,8 @@ class _ZzimPageState extends State<ZzimPage> {
             context,
             MaterialPageRoute(
               builder: (_) => CourseDetailPage(
+                courseId: courseId,
+                courseOwnerId: course['user_id'],
                 courseName: courseName,
                 courseDescription: courseDesc,
                 withWho: withWho,

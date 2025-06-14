@@ -129,6 +129,69 @@ const getCoursesByUser = async (req, res) => {
     res.status(500).json({ error: "코스 불러오기 실패" });
   }
 };
+const updateCourse = async (req, res) => {
+  const courseId = parseInt(req.params.id, 10);
+  const {
+    course_name,
+    course_description,
+    hashtags,
+    selected_date,
+    with_who,
+    purpose,
+    schedules,
+  } = req.body;
+
+  try {
+    await pool.query('BEGIN');
+
+    const updateQuery = `
+      UPDATE courses
+      SET course_name = $1,
+          course_description = $2,
+          hashtags = $3,
+          selected_date = $4,
+          with_who = $5,
+          purpose = $6
+      WHERE id = $7
+    `;
+
+    await pool.query(updateQuery, [
+      course_name,
+      course_description,
+      hashtags,
+      selected_date,
+      with_who,
+      purpose,
+      courseId,
+    ]);
+
+    await pool.query('DELETE FROM course_schedules WHERE course_id = $1', [courseId]);
+
+    const insertScheduleQuery = `
+      INSERT INTO course_schedules (course_id, schedule_order, place_id, place_name, place_address, place_image)
+      VALUES ($1, $2, $3, $4, $5, $6)
+    `;
+
+    for (let i = 0; i < schedules.length; i++) {
+      const s = schedules[i];
+      await pool.query(insertScheduleQuery, [
+        courseId,
+        i + 1,
+        s.placeId,
+        s.placeName,
+        s.placeAddress,
+        s.placeImage,
+      ]);
+    }
+
+    await pool.query('COMMIT');
+    res.status(200).json({ message: 'Course updated successfully' });
+  } catch (err) {
+    await pool.query('ROLLBACK');
+    console.error('updateCourse error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
 const deleteCourse = async (req, res) => {
   const courseId = parseInt(req.params.id, 10);
   try {
@@ -301,4 +364,4 @@ const getAllCourses = async (req, res) => {
   }
 };
 
-module.exports = { createCourse,getCoursesByUser,deleteCourse,getAllCourses };
+module.exports = { createCourse,getCoursesByUser,updateCourse,deleteCourse,getAllCourses };
