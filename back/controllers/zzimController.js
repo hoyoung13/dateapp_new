@@ -138,5 +138,57 @@ const createCollection = async (req, res) => {
       res.status(500).json({ error: "Server error" });
     }
   };
+  const updateCollection = async (req, res) => {
+    try {
+      const { collection_id } = req.params;
+      const { collection_name, description } = req.body;
+      const result = await pool.query(
+        `UPDATE collections
+           SET collection_name = COALESCE($2, collection_name),
+               description    = COALESCE($3, description)
+         WHERE id = $1
+         RETURNING *;`,
+        [collection_id, collection_name, description]
+      );
+      if (result.rowCount === 0) {
+        return res.status(404).json({ error: "컬렉션을 찾을 수 없습니다." });
+      }
+      return res
+        .status(200)
+        .json({ message: "Collection updated", collection: result.rows[0] });
+    } catch (error) {
+      console.error("Error updating collection:", error);
+      return res.status(500).json({ error: "Server error" });
+    }
+  };
   
-  module.exports = { createCollection, getCollectionsByUser, getPublicCollections, deleteCollection, addPlaceToCollection, getPlacesInCollection };
+  const deletePlaceFromCollection = async (req, res) => {
+    try {
+      const { collection_id, place_id } = req.params;
+      const result = await pool.query(
+        `DELETE FROM collection_places
+         WHERE collection_id = $1 AND place_id = $2
+         RETURNING *;`,
+        [collection_id, place_id]
+      );
+      if (result.rowCount === 0) {
+        return res.status(404).json({ error: "해당 장소가 없습니다." });
+      }
+      return res
+        .status(200)
+        .json({ message: "장소 삭제 성공", deleted: result.rows[0] });
+    } catch (error) {
+      console.error("Error deleting place from collection:", error);
+      return res.status(500).json({ error: "Server error" });
+    }
+  };
+  module.exports = {
+    createCollection,
+    getCollectionsByUser,
+    getPublicCollections,
+    deleteCollection,
+    updateCollection,
+    addPlaceToCollection,
+    getPlacesInCollection,
+    deletePlaceFromCollection,
+  };

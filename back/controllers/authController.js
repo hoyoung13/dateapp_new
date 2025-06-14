@@ -21,7 +21,7 @@ const registerUser = async (req, res) => {
         // 여기는 기본 찜목록 생성하는거
         const defaultCollectionResult = await pool.query(
             "INSERT INTO collections (user_id, collection_name, description, is_public) VALUES ($1, $2, $3, $4) RETURNING *",
-            [newUser.id, "찜목록", "기본 찜 목록", true]
+            [newUser.id, "찜목록", "기본 찜 목록", false]
         );
         const defaultCollection = defaultCollectionResult.rows[0];
 

@@ -3,12 +3,30 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'constants.dart';
 import 'zzim.dart';
+import 'foodplace.dart';
 
-class CollectionDetailPage extends StatelessWidget {
+class CollectionDetailPage extends StatefulWidget {
   final Map<String, dynamic> collection;
 
   const CollectionDetailPage({Key? key, required this.collection})
       : super(key: key);
+  @override
+  State<CollectionDetailPage> createState() => _CollectionDetailPageState();
+}
+
+class _CollectionDetailPageState extends State<CollectionDetailPage> {
+  late Map<String, dynamic> collection;
+  Future<List<dynamic>>? _placesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    collection = Map<String, dynamic>.from(widget.collection);
+    final int? id = collection['id'];
+    if (id != null) {
+      _placesFuture = fetchPlacesInCollection(id);
+    }
+  }
 
   // 컬렉션 내 장소 목록 불러오기
   Future<List<dynamic>> fetchPlacesInCollection(int collectionId) async {
@@ -50,6 +68,98 @@ class CollectionDetailPage extends StatelessWidget {
         const SnackBar(content: Text('서버 오류로 삭제에 실패했습니다.')),
       );
     }
+  }
+
+  Future<void> _updateCollection(
+      BuildContext context, int id, String name, String desc) async {
+    final url = Uri.parse('$BASE_URL/zzim/collections/$id');
+    try {
+      final resp = await http.patch(url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'collection_name': name,
+            'description': desc,
+          }));
+      if (resp.statusCode == 200) {
+        setState(() {
+          collection['collection_name'] = name;
+          collection['description'] = desc;
+        });
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('수정되었습니다.')));
+      } else {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('수정 실패: ${resp.statusCode}')));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('서버 오류')));
+    }
+  }
+
+  Future<void> _deletePlace(
+      BuildContext context, int collectionId, int placeId) async {
+    final url =
+        Uri.parse('$BASE_URL/zzim/collection_places/$collectionId/$placeId');
+    try {
+      final resp = await http.delete(url);
+      if (resp.statusCode == 200) {
+        setState(() {
+          _placesFuture = fetchPlacesInCollection(collectionId);
+        });
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('삭제되었습니다.')));
+      } else {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('삭제 실패: ${resp.statusCode}')));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('서버 오류')));
+    }
+  }
+
+  void _showEditDialog(int id) {
+    final nameCtrl =
+        TextEditingController(text: collection['collection_name'] ?? '');
+    final descCtrl =
+        TextEditingController(text: collection['description'] ?? '');
+    showDialog(
+      context: context,
+      builder: (_) {
+        return AlertDialog(
+          title: const Text('콜렉션 수정'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameCtrl,
+                decoration: const InputDecoration(labelText: '제목'),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: descCtrl,
+                decoration: const InputDecoration(labelText: '설명'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('취소'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await _updateCollection(
+                    context, id, nameCtrl.text, descCtrl.text);
+              },
+              child: const Text('저장'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -126,7 +236,7 @@ class CollectionDetailPage extends StatelessWidget {
               children: [
                 InkWell(
                   onTap: () {
-                    // 편집 로직
+                    if (collectionId != null) _showEditDialog(collectionId);
                   },
                   child: Column(
                     children: const [
@@ -196,7 +306,7 @@ class CollectionDetailPage extends StatelessWidget {
             if (collectionId != null)
               Expanded(
                 child: FutureBuilder<List<dynamic>>(
-                  future: fetchPlacesInCollection(collectionId),
+                  future: _placesFuture,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
@@ -212,7 +322,7 @@ class CollectionDetailPage extends StatelessWidget {
                         itemCount: places.length,
                         itemBuilder: (context, index) {
                           final place = places[index];
-                          return _buildPlaceCard(place);
+                          return _buildPlaceCard(collectionId!, place);
                         },
                       );
                     }
@@ -226,7 +336,7 @@ class CollectionDetailPage extends StatelessWidget {
   }
 
   /// 카드 형태로 장소 표시 (이미지, 카테고리, 장소 이름, 별점, 해시태그, 우측 하트)
-  Widget _buildPlaceCard(dynamic place) {
+  Widget _buildPlaceCard(int collectionId, dynamic place) {
     // 예시 필드명 (실제 DB 구조에 맞게 수정)
     final String? imageUrl = (place['images'] != null &&
             place['images'] is List &&
@@ -292,6 +402,31 @@ class CollectionDetailPage extends StatelessWidget {
                     style: const TextStyle(
                         fontSize: 16, fontWeight: FontWeight.bold),
                   ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  onPressed: () async {
+                    final bool? confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (_) => AlertDialog(
+                        title: const Text('장소 삭제'),
+                        content: const Text('해당 장소를 콜렉션에서 삭제하시겠습니까?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text('취소'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: const Text('삭제'),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirm == true) {
+                      _deletePlace(context, collectionId, place['id']);
+                    }
+                  },
                 ),
                 const Icon(Icons.favorite_border, color: Colors.grey),
               ],

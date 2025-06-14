@@ -147,15 +147,22 @@ class _PlaceInPageUIOnlyState extends State<PlaceInPageUIOnly>
   Widget _buildTopImage() {
     final images = widget.payload['images'] as List<dynamic>?;
     if (images != null && images.isNotEmpty) {
-      final firstImage = images.first;
+      final firstImage = images.first.toString();
+      Widget imageWidget;
+      if (firstImage.startsWith('http')) {
+        imageWidget = Image.network(firstImage, fit: BoxFit.cover);
+      } else if (firstImage.startsWith('/data/') ||
+          firstImage.startsWith('file://')) {
+        imageWidget = Image.file(File(firstImage), fit: BoxFit.cover);
+      } else {
+        final fullUrl = '$BASE_URL$firstImage';
+        imageWidget = Image.network(fullUrl, fit: BoxFit.cover);
+      }
       return Container(
         width: double.infinity,
         height: 150,
         color: Colors.grey[300],
-        child: Image.file(
-          File(firstImage.toString()),
-          fit: BoxFit.cover,
-        ),
+        child: imageWidget,
       );
     } else {
       return Container(
