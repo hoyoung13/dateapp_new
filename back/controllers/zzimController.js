@@ -41,7 +41,7 @@ const createCollection = async (req, res) => {
   const getPublicCollections = async (req, res) => {
     try {
       const query = `
-        SELECT c.*, u.nickname
+        SELECT c.*, u.nickname, u.profile_image
         FROM collections c
         JOIN users u ON c.user_id = u.id
         WHERE c.is_public = true
