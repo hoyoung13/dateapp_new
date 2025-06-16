@@ -27,8 +27,10 @@ const List<String> _reportCategories = [
 class PlaceInPageUIOnly extends StatefulWidget {
   // 다른 화면에서 'place_name', 'images', 'description', 'operating_hours', 'phone', 'address', 'main_category', 'sub_category', 'hashtags' 등 UI에 필요한 데이터를 넘긴다고 가정
   final Map<String, dynamic> payload;
-
-  const PlaceInPageUIOnly({super.key, required this.payload});
+  final VoidCallback? onApprove;
+  final VoidCallback? onDelete;
+  const PlaceInPageUIOnly(
+      {super.key, required this.payload, this.onApprove, this.onDelete});
 
   @override
   State<PlaceInPageUIOnly> createState() => _PlaceInPageUIOnlyState();
@@ -543,97 +545,113 @@ class _PlaceInPageUIOnlyState extends State<PlaceInPageUIOnly>
             ),
           ),
           actions: [
-            IconButton(
-              icon: const Icon(Icons.flag, color: Colors.black),
-              onPressed: () {
-                final TextEditingController reasonCtrl =
-                    TextEditingController();
-                String selectedCategory = _reportCategories.first;
-                showDialog(
-                  context: context,
-                  builder: (ctx) {
-                    return StatefulBuilder(
-                      builder: (dialogCtx, setState) {
-                        return AlertDialog(
-                          title: const Text('장소 신고'),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              DropdownButton<String>(
-                                isExpanded: true,
-                                value: selectedCategory,
-                                items: _reportCategories
-                                    .map((c) => DropdownMenuItem(
-                                          value: c,
-                                          child: Text(c),
-                                        ))
-                                    .toList(),
-                                onChanged: (val) {
-                                  if (val != null) {
-                                    setState(() => selectedCategory = val);
+            if (widget.onApprove != null || widget.onDelete != null) ...[
+              if (widget.onDelete != null)
+                TextButton(
+                  onPressed: widget.onDelete,
+                  child: const Text('삭제', style: TextStyle(color: Colors.red)),
+                ),
+              if (widget.onApprove != null)
+                TextButton(
+                  onPressed: widget.onApprove,
+                  child:
+                      const Text('승인', style: TextStyle(color: Colors.white)),
+                ),
+            ] else ...[
+              IconButton(
+                icon: const Icon(Icons.flag, color: Colors.black),
+                onPressed: () {
+                  final TextEditingController reasonCtrl =
+                      TextEditingController();
+                  String selectedCategory = _reportCategories.first;
+                  showDialog(
+                    context: context,
+                    builder: (ctx) {
+                      return StatefulBuilder(
+                        builder: (dialogCtx, setState) {
+                          return AlertDialog(
+                            title: const Text('장소 신고'),
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                DropdownButton<String>(
+                                  isExpanded: true,
+                                  value: selectedCategory,
+                                  items: _reportCategories
+                                      .map((c) => DropdownMenuItem(
+                                            value: c,
+                                            child: Text(c),
+                                          ))
+                                      .toList(),
+                                  onChanged: (val) {
+                                    if (val != null) {
+                                      setState(() => selectedCategory = val);
+                                    }
+                                  },
+                                ),
+                                const SizedBox(height: 8),
+                                TextField(
+                                  controller: reasonCtrl,
+                                  decoration: const InputDecoration(
+                                    labelText: '추가 내용',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  maxLines: 3,
+                                ),
+                              ],
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(dialogCtx),
+                                child: const Text('취소'),
+                              ),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  final userId =
+                                      context.read<UserProvider>().userId;
+                                  if (userId == null) {
+                                    Navigator.pop(dialogCtx);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content: Text('로그인이 필요합니다.')));
+                                    return;
+                                  }
+                                  final uri = Uri.parse(
+                                      '$BASE_URL/places/${widget.payload['id']}/report');
+                                  final resp = await http.post(
+                                    uri,
+                                    headers: {
+                                      'Content-Type': 'application/json'
+                                    },
+                                    body: jsonEncode({
+                                      'user_id': userId,
+                                      'category': selectedCategory,
+                                      'reason': reasonCtrl.text,
+                                    }),
+                                  );
+                                  Navigator.pop(dialogCtx);
+                                  if (resp.statusCode == 201) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content: Text('신고가 접수되었습니다.')));
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                            content: Text(
+                                                '신고 실패: ${resp.statusCode}')));
                                   }
                                 },
-                              ),
-                              const SizedBox(height: 8),
-                              TextField(
-                                controller: reasonCtrl,
-                                decoration: const InputDecoration(
-                                  labelText: '추가 내용',
-                                  border: OutlineInputBorder(),
-                                ),
-                                maxLines: 3,
+                                child: const Text('신고'),
                               ),
                             ],
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(dialogCtx),
-                              child: const Text('취소'),
-                            ),
-                            ElevatedButton(
-                              onPressed: () async {
-                                final userId =
-                                    context.read<UserProvider>().userId;
-                                if (userId == null) {
-                                  Navigator.pop(dialogCtx);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content: Text('로그인이 필요합니다.')));
-                                  return;
-                                }
-                                final uri = Uri.parse(
-                                    '$BASE_URL/places/${widget.payload['id']}/report');
-                                final resp = await http.post(
-                                  uri,
-                                  headers: {'Content-Type': 'application/json'},
-                                  body: jsonEncode({
-                                    'user_id': userId,
-                                    'category': selectedCategory,
-                                    'reason': reasonCtrl.text,
-                                  }),
-                                );
-                                Navigator.pop(dialogCtx);
-                                if (resp.statusCode == 201) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content: Text('신고가 접수되었습니다.')));
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                          content: Text(
-                                              '신고 실패: ${resp.statusCode}')));
-                                }
-                              },
-                              child: const Text('신고'),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                );
-              },
-            ),
+                          );
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
+            ],
           ],
           elevation: 0, // 그림자 없애기
         ),

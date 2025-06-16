@@ -6,6 +6,7 @@ import 'constants.dart';
 import 'package:provider/provider.dart';
 import 'user_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'admin_place_request_detail_page.dart';
 
 class AdminPlaceRequestsPage extends StatefulWidget {
   const AdminPlaceRequestsPage({Key? key}) : super(key: key);
@@ -98,19 +99,20 @@ class _AdminPlaceRequestsPageState extends State<AdminPlaceRequestsPage> {
               return ListTile(
                 title: Text(item['place_name'] ?? ''),
                 subtitle: Text(item['address'] ?? ''),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.check),
-                      onPressed: () => _approve(item['id']),
+                onTap: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AdminPlaceRequestDetailPage(
+                          placeId: item['id'] as int),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => _reject(item['id']),
-                    ),
-                  ],
-                ),
+                  );
+                  if (result == true) {
+                    setState(() {
+                      _future = _loadRequests();
+                    });
+                  }
+                },
               );
             },
           );
