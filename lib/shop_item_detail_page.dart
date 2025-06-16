@@ -44,7 +44,7 @@ class _ShopItemDetailPageState extends State<ShopItemDetailPage> {
             if (widget.item.imageUrl.isNotEmpty)
               Image.network(
                 resolveImageUrl(widget.item.imageUrl),
-                height: 150,
+                height: 120,
               ),
             const SizedBox(height: 16),
             Text('${widget.item.pricePoints} 포인트',
@@ -58,14 +58,8 @@ class _ShopItemDetailPageState extends State<ShopItemDetailPage> {
                     ? const CircularProgressIndicator()
                     : const Text('구매하기'),
               )
-            else ...[
-              const Text('구매 완료! 바코드를 제시하세요.'),
-              const SizedBox(height: 10),
-              Image.network(
-                'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${_purchase!.barcode}',
-                height: 150,
-              ),
-            ]
+            else
+              const Text('구매 완료!')
           ],
         ),
       ),

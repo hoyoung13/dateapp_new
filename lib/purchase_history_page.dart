@@ -59,6 +59,31 @@ class _PurchaseHistoryPageState extends State<PurchaseHistoryPage> {
                     : null,
                 title: Text(item.itemName),
                 subtitle: Text(_formatDate(item.purchasedAt)),
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (_) => AlertDialog(
+                      title: Text(item.itemName),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Image.network(
+                            'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${item.barcode}',
+                            height: 150,
+                          ),
+                          const SizedBox(height: 10),
+                          const Text('바코드를 제시하세요'),
+                        ],
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('닫기'),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               );
             },
           );

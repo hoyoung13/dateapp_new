@@ -91,7 +91,8 @@ class _ShopPageState extends State<ShopPage>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     if (item.imageUrl.isNotEmpty)
-                      Expanded(
+                      SizedBox(
+                        height: 100,
                         child: Image.network(
                           resolveImageUrl(item.imageUrl),
                           fit: BoxFit.cover,
