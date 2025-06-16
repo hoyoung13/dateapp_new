@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'constants.dart';
 import 'package:provider/provider.dart';
 import 'user_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AdminPlaceRequestsPage extends StatefulWidget {
   const AdminPlaceRequestsPage({Key? key}) : super(key: key);
@@ -16,6 +17,16 @@ class AdminPlaceRequestsPage extends StatefulWidget {
 class _AdminPlaceRequestsPageState extends State<AdminPlaceRequestsPage> {
   Future<List<dynamic>>? _future;
   int? _adminId;
+  Future<Map<String, String>> _authHeaders() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    final headers = {
+      'Content-Type': 'application/json',
+      'user_id': '$_adminId',
+    };
+    if (token != null) headers['Authorization'] = 'Bearer $token';
+    return headers;
+  }
 
   @override
   void initState() {
@@ -27,10 +38,8 @@ class _AdminPlaceRequestsPageState extends State<AdminPlaceRequestsPage> {
 
   Future<List<dynamic>> _loadRequests() async {
     final uri = Uri.parse('$BASE_URL/admin/place-requests');
-    final resp = await http.get(uri, headers: {
-      'Content-Type': 'application/json',
-      'user_id': '${_adminId}'
-    });
+    final headers = await _authHeaders();
+    final resp = await http.get(uri, headers: headers);
     // 🔍 응답 상태코드와 본문 출력
     print('응답 상태 코드: ${resp.statusCode}');
     print('응답 본문: ${resp.body}');
@@ -52,10 +61,8 @@ class _AdminPlaceRequestsPageState extends State<AdminPlaceRequestsPage> {
 
   Future<void> _approve(int id) async {
     final uri = Uri.parse('$BASE_URL/admin/place-requests/$id/approve');
-    await http.post(uri, headers: {
-      'Content-Type': 'application/json',
-      'user_id': '${_adminId}'
-    });
+    final headers = await _authHeaders();
+    await http.post(uri, headers: headers);
     setState(() {
       _future = _loadRequests();
     });
@@ -63,10 +70,8 @@ class _AdminPlaceRequestsPageState extends State<AdminPlaceRequestsPage> {
 
   Future<void> _reject(int id) async {
     final uri = Uri.parse('$BASE_URL/admin/place-requests/$id/reject');
-    await http.post(uri, headers: {
-      'Content-Type': 'application/json',
-      'user_id': '${_adminId}'
-    });
+    final headers = await _authHeaders();
+    await http.post(uri, headers: headers);
     setState(() {
       _future = _loadRequests();
     });

@@ -162,7 +162,11 @@ class _AdminShopPageState extends State<AdminShopPage> {
               final item = items[index];
               return ListTile(
                 leading: item.imageUrl.isNotEmpty
-                    ? Image.network(item.imageUrl, width: 40, height: 40)
+                    ? Image.network(
+                        resolveImageUrl(item.imageUrl),
+                        width: 40,
+                        height: 40,
+                      )
                     : null,
                 title: Text(item.name),
                 subtitle: Text('${item.pricePoints}P - ${item.category}'),
