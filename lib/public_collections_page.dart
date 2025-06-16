@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'constants.dart';
 import 'zzimdetail.dart';
 import 'dart:io';
+import 'user_provider.dart';
+import 'package:provider/provider.dart';
 
 class PublicCollectionsPage extends StatefulWidget {
   const PublicCollectionsPage({Key? key}) : super(key: key);
@@ -213,6 +215,11 @@ class _PublicCollectionsPageState extends State<PublicCollectionsPage> {
     return [];
   }
 
+  List<dynamic> filterCollections(List<dynamic> collections, int? userId) {
+    if (userId == null) return collections;
+    return collections.where((c) => c['user_id'] != userId).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -227,7 +234,9 @@ class _PublicCollectionsPageState extends State<PublicCollectionsPage> {
           if (snapshot.connectionState != ConnectionState.done) {
             return const Center(child: CircularProgressIndicator());
           }
-          final collections = snapshot.data ?? [];
+          final userId =
+              Provider.of<UserProvider>(context, listen: false).userId;
+          final collections = filterCollections(snapshot.data ?? [], userId);
           if (collections.isEmpty) {
             return const Center(child: Text('공개된 컬렉션이 없습니다.'));
           }
