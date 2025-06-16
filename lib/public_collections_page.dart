@@ -33,19 +33,6 @@ class _PublicCollectionsPageState extends State<PublicCollectionsPage> {
     final nickname = coll['nickname']?.toString() ?? '';
     final profile = coll['profile_image']?.toString() ?? '';
 
-    DecorationImage? bg;
-    if (thumb.isNotEmpty) {
-      ImageProvider provider;
-      if (thumb.startsWith('http')) {
-        provider = NetworkImage(thumb);
-      } else if (thumb.startsWith('/data/') || thumb.startsWith('file://')) {
-        provider = FileImage(File(thumb));
-      } else {
-        provider = NetworkImage('$BASE_URL$thumb');
-      }
-      bg = DecorationImage(image: provider, fit: BoxFit.cover);
-    }
-
     ImageProvider? profileProvider;
     if (profile.isNotEmpty) {
       if (profile.startsWith('http')) {
@@ -64,7 +51,30 @@ class _PublicCollectionsPageState extends State<PublicCollectionsPage> {
         final places = snapshot.data ?? [];
         final display = places.take(5).toList();
         final extra = places.length - display.length;
+        String bgUrl = thumb;
+        if (bgUrl.isEmpty && places.isNotEmpty) {
+          final first = places.first;
+          final List<dynamic> imgs = first['images'] is List
+              ? List<dynamic>.from(first['images'])
+              : [];
+          if (imgs.isNotEmpty) {
+            bgUrl = imgs.first.toString();
+          }
+        }
 
+        DecorationImage? bg;
+        if (bgUrl.isNotEmpty) {
+          ImageProvider provider;
+          if (bgUrl.startsWith('http')) {
+            provider = NetworkImage(bgUrl);
+          } else if (bgUrl.startsWith('/data/') ||
+              bgUrl.startsWith('file://')) {
+            provider = FileImage(File(bgUrl));
+          } else {
+            provider = NetworkImage('$BASE_URL$bgUrl');
+          }
+          bg = DecorationImage(image: provider, fit: BoxFit.cover);
+        }
         List<Widget> placeImages = [];
         for (var i = 0; i < display.length; i++) {
           final place = display[i];
@@ -83,8 +93,8 @@ class _PublicCollectionsPageState extends State<PublicCollectionsPage> {
           }
           Widget img = Container(
             margin: const EdgeInsets.only(right: 4),
-            width: 50,
-            height: 50,
+            width: 60,
+            height: 60,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(4),
               image: DecorationImage(image: provider, fit: BoxFit.cover),
@@ -95,8 +105,8 @@ class _PublicCollectionsPageState extends State<PublicCollectionsPage> {
               children: [
                 img,
                 Container(
-                  width: 50,
-                  height: 50,
+                  width: 60,
+                  height: 60,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: Colors.black45,
@@ -134,6 +144,7 @@ class _PublicCollectionsPageState extends State<PublicCollectionsPage> {
                 Positioned(
                   top: 8,
                   left: 8,
+                  right: 8,
                   child: Row(
                     children: [
                       CircleAvatar(
@@ -150,7 +161,7 @@ class _PublicCollectionsPageState extends State<PublicCollectionsPage> {
                           Shadow(blurRadius: 2, color: Colors.black)
                         ]),
                       ),
-                      const SizedBox(width: 4),
+                      const Spacer(),
                       const Icon(Icons.favorite_border, color: Colors.white),
                     ],
                   ),
