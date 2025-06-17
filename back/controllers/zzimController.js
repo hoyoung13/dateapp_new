@@ -54,6 +54,38 @@ const createCollection = async (req, res) => {
       res.status(500).json({ error: "Server error" });
     }
   };
+  const favoriteCollection = async (req, res) => {
+    const { collection_id } = req.params;
+    const { user_id } = req.body;
+  
+    try {
+      await pool.query('BEGIN');
+  
+      const insertCollectionQuery = `
+        INSERT INTO collections (user_id, collection_name, description, thumbnail, is_public)
+        SELECT $2, collection_name, description, thumbnail, is_public
+          FROM collections
+         WHERE id = $1
+        RETURNING id;
+      `;
+      const insertResult = await pool.query(insertCollectionQuery, [collection_id, user_id]);
+      const newCollectionId = insertResult.rows[0].id;
+  
+      await pool.query(
+        `INSERT INTO collection_places (collection_id, place_id)
+         SELECT $1, place_id FROM collection_places WHERE collection_id = $2`,
+        [newCollectionId, collection_id]
+      );
+  
+      await pool.query('COMMIT');
+  
+      res.status(201).json({ collection_id: newCollectionId });
+    } catch (error) {
+      await pool.query('ROLLBACK');
+      console.error('Error favoriting collection:', error);
+      res.status(500).json({ error: 'Server error' });
+    }
+  };
   //삭제기능
   const deleteCollection = async (req, res) => {
     console.log("DELETE 요청:", req.method, req.url);
@@ -186,6 +218,8 @@ const createCollection = async (req, res) => {
     createCollection,
     getCollectionsByUser,
     getPublicCollections,
+    favoriteCollection,
+
     deleteCollection,
     updateCollection,
     addPlaceToCollection,

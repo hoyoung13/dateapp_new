@@ -16,6 +16,8 @@ class PublicCollectionsPage extends StatefulWidget {
 
 class _PublicCollectionsPageState extends State<PublicCollectionsPage> {
   late Future<List<dynamic>> _collectionsFuture;
+  Set<int> _myCollectionIds = {}; // 내 컬렉션 ID 목록
+
   Future<List<dynamic>> fetchPlacesInCollection(int collectionId) async {
     final url = Uri.parse('$BASE_URL/zzim/collection_places/$collectionId');
     try {
@@ -164,12 +166,22 @@ class _PublicCollectionsPageState extends State<PublicCollectionsPage> {
                         ]),
                       ),
                       const Spacer(),
-                      const Icon(Icons.favorite_border, color: Colors.white),
+                      IconButton(
+                        icon: Icon(
+                          _myCollectionIds.contains(coll['id'])
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          color: Colors.white,
+                        ),
+                        onPressed: _myCollectionIds.contains(coll['id'])
+                            ? null
+                            : () => _favoriteCollection(coll),
+                      ),
                     ],
                   ),
                 ),
                 Positioned(
-                  bottom: 60,
+                  bottom: 80,
                   left: 8,
                   right: 8,
                   child: Text(
@@ -199,6 +211,9 @@ class _PublicCollectionsPageState extends State<PublicCollectionsPage> {
   void initState() {
     super.initState();
     _collectionsFuture = _fetchPublicCollections();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchMyCollections();
+    });
   }
 
   Future<List<dynamic>> _fetchPublicCollections() async {
@@ -213,6 +228,65 @@ class _PublicCollectionsPageState extends State<PublicCollectionsPage> {
       debugPrint('fetchPublicCollections error: $e');
     }
     return [];
+  }
+
+  Future<void> _fetchMyCollections() async {
+    final userId = Provider.of<UserProvider>(context, listen: false).userId;
+    if (userId == null) return;
+    try {
+      final resp =
+          await http.get(Uri.parse('$BASE_URL/zzim/collections/$userId'));
+      if (resp.statusCode == 200) {
+        final data = jsonDecode(resp.body) as Map<String, dynamic>;
+        final List<dynamic> collections = data['collections'] ?? [];
+        setState(() {
+          _myCollectionIds = collections
+              .map((e) => e['copied_from_id'] ?? e['id'])
+              .map((id) => id is int ? id : int.parse(id.toString()))
+              .toSet();
+        });
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  Future<void> _favoriteCollection(Map<String, dynamic> coll) async {
+    final userId = Provider.of<UserProvider>(context, listen: false).userId;
+    if (userId == null) return;
+    final collId = coll['id'];
+    if (collId == null || _myCollectionIds.contains(collId)) return;
+    final url = Uri.parse('$BASE_URL/zzim/collections');
+    final body = {
+      'user_id': userId,
+      'collection_name': coll['collection_name'],
+      'description': coll['description'],
+      'thumbnail': coll['thumbnail'],
+      'is_public': false,
+      'favorite_from_collection_id': collId,
+    };
+    try {
+      final resp = await http.post(url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(body));
+      if (resp.statusCode == 201) {
+        setState(() {
+          _myCollectionIds
+              .add(collId is int ? collId : int.parse(collId.toString()));
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('내 컬렉션에 저장되었습니다.')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('저장 실패: ${resp.statusCode}')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('오류: $e')),
+      );
+    }
   }
 
   List<dynamic> filterCollections(List<dynamic> collections, int? userId) {

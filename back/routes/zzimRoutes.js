@@ -5,6 +5,7 @@ const {
     createCollection,
     getCollectionsByUser,
     getPublicCollections,
+    favoriteCollection,
     deleteCollection,
     updateCollection,
     addPlaceToCollection,
@@ -14,6 +15,7 @@ const {
 router.post('/collections', createCollection);
 router.get('/collections/:user_id', getCollectionsByUser);
 router.get('/public_collections', getPublicCollections);
+router.post('/collections/:collection_id/favorite', favoriteCollection);
 
 router.delete('/collections/:collection_id', deleteCollection);
 router.patch('/collections/:collection_id', updateCollection);
