@@ -6,6 +6,7 @@ import 'chat.dart';
 import 'package:provider/provider.dart';
 import 'user_provider.dart';
 import 'place_report.dart';
+import 'auth_helper.dart';
 
 class AdminPlaceReportsPage extends StatefulWidget {
   const AdminPlaceReportsPage({Key? key}) : super(key: key);
@@ -28,10 +29,8 @@ class _AdminPlaceReportsPageState extends State<AdminPlaceReportsPage> {
 
   Future<List<PlaceReport>> _loadReports() async {
     final uri = Uri.parse('$BASE_URL/admin/place-reports');
-    final resp = await http.get(uri, headers: {
-      'Content-Type': 'application/json',
-      'user_id': '${_adminId}'
-    });
+    final headers = await AuthHelper.authHeaders(userId: _adminId);
+    final resp = await http.get(uri, headers: headers);
     if (resp.statusCode == 200) {
       final data = jsonDecode(resp.body) as Map<String, dynamic>;
       final list = data['reports'] as List<dynamic>;
@@ -44,8 +43,10 @@ class _AdminPlaceReportsPageState extends State<AdminPlaceReportsPage> {
 
   Future<void> _update(int id, String msg, {bool deletePlace = false}) async {
     final uri = Uri.parse('$BASE_URL/admin/place-reports/$id');
+    final headers = await AuthHelper.authHeaders(userId: _adminId);
+
     await http.patch(uri,
-        headers: {'Content-Type': 'application/json', 'user_id': '${_adminId}'},
+        headers: headers,
         body: jsonEncode({'delete_place': deletePlace, 'message': msg}));
     setState(() {
       _future = _loadReports();

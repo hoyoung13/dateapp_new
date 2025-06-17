@@ -5,6 +5,7 @@ import 'package:intl/intl.dart'; // ✅ 날짜 포맷 라이브러리 추가
 import 'package:provider/provider.dart';
 import 'user_provider.dart';
 import 'constants.dart';
+import 'auth_helper.dart';
 
 // ✅ 시간 포맷 함수
 String formatTime(String timestamp) {
@@ -226,11 +227,10 @@ class _PostPageState extends State<PostPage> {
     if (widget.reportId == null) return;
     final adminId = Provider.of<UserProvider>(context, listen: false).userId;
     final uri = Uri.parse('$BASE_URL/admin/post-reports/${widget.reportId}');
+    final headers = await AuthHelper.authHeaders(userId: adminId);
+
     await http.patch(uri,
-        headers: {
-          'Content-Type': 'application/json',
-          if (adminId != null) 'user_id': '$adminId'
-        },
+        headers: headers,
         body: jsonEncode({
           'delete_post': deletePost,
           'message': deletePost

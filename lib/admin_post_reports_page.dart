@@ -7,6 +7,7 @@ import 'constants.dart';
 import 'user_provider.dart';
 import 'post_report.dart';
 import 'post.dart';
+import 'auth_helper.dart';
 
 class AdminPostReportsPage extends StatefulWidget {
   const AdminPostReportsPage({Key? key}) : super(key: key);
@@ -28,8 +29,8 @@ class _AdminPostReportsPageState extends State<AdminPostReportsPage> {
 
   Future<List<PostReport>> _loadReports() async {
     final uri = Uri.parse('$BASE_URL/admin/post-reports');
-    final resp = await http.get(uri,
-        headers: {'Content-Type': 'application/json', 'user_id': '$_adminId'});
+    final headers = await AuthHelper.authHeaders(userId: _adminId);
+    final resp = await http.get(uri, headers: headers);
     if (resp.statusCode == 200) {
       final data = jsonDecode(resp.body) as Map<String, dynamic>;
       final list = data['reports'] as List<dynamic>;
