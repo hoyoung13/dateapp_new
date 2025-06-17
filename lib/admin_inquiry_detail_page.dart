@@ -25,10 +25,15 @@ class _AdminInquiryDetailPageState extends State<AdminInquiryDetailPage> {
   }
 
   Future<void> _submit() async {
+    final answer = _answerController.text.trim();
+    if (answer.isEmpty) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('답변을 입력해주세요.')));
+      return;
+    }
     final adminId =
         Provider.of<UserProvider>(context, listen: false).userId ?? 8;
-    await InquiryService.answerInquiry(
-        widget.inquiryId, adminId, _answerController.text);
+    await InquiryService.answerInquiry(widget.inquiryId, adminId, answer);
     if (!mounted) return;
     Navigator.pop(context, true);
   }

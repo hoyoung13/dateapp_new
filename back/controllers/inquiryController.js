@@ -51,9 +51,14 @@ const getInquiry = async (req, res) => {
 
 const answerInquiry = async (req, res) => {
   const id = parseInt(req.params.id, 10);
-  const { answer, answerer_id } = req.body;
-  if (!answer || !answerer_id) {
-    return res.status(400).json({ error: 'answer and answerer_id required' });
+  const { answer } = req.body;
+  const answerer_id =
+    req.body.answerer_id || (req.user && (req.user.id || req.user.userId));
+  if (!answer) {
+    return res.status(400).json({ error: 'answer required' });
+  }
+  if (!answerer_id) {
+    return res.status(400).json({ error: 'answerer_id required' });
   }
   try {
     const { rows } = await pool.query(
