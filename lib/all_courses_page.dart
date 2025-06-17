@@ -426,6 +426,8 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
 
   /// (D) 코스 카드 UI: 이미지를 포함한 썸네일 형태로 렌더링
   Widget _buildCourseCard(CourseModel course) {
+    final nickname = _userProfiles[course.userId]?['nickname'] ?? '';
+
     return InkWell(
       onTap: () {
         final schedules = List<ScheduleItem>.from(course.schedules);
@@ -446,235 +448,168 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
           ),
         );
       },
-      child: Card(
+      child: Container(
         margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        elevation: 2,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            // ── ★ 여기에서 mainAxisSize: MainAxisSize.min 을 추가 ──
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 16,
-                    backgroundImage: _userProfiles[course.userId] != null &&
-                            _userProfiles[course.userId]!['profileImage']!
-                                .isNotEmpty
-                        ? NetworkImage(
-                            _userProfiles[course.userId]!['profileImage']!)
-                        : null,
-                    child: _userProfiles[course.userId] == null ||
-                            _userProfiles[course.userId]!['profileImage']!
-                                .isEmpty
-                        ? const Icon(Icons.person, size: 16)
-                        : null,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(_userProfiles[course.userId]?['nickname'] ?? ''),
-                ],
-              ),
-              const SizedBox(height: 8),
-              // 1) 코스명
-              Text(
-                course.courseName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 4),
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (course.schedules.isNotEmpty)
+              SizedBox(
+                height: 200,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: course.schedules.length,
+                  itemBuilder: (context, index) {
+                    final sch = course.schedules[index];
+                    final String? placeName = sch.placeName;
+                    final String? placeImage = sch.placeImage;
 
-              // 2) “누구와 / 무엇을” Chip
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: [
-                  ...course.withWho.map((label) => Chip(
-                        label: Text(label),
-                        backgroundColor: Colors.pink.shade50,
-                        labelStyle: const TextStyle(fontSize: 12),
-                      )),
-                  ...course.purpose.map((label) => Chip(
-                        label: Text(label),
-                        backgroundColor: Colors.yellow.shade50,
-                        labelStyle: const TextStyle(fontSize: 12),
-                      )),
-                ],
-              ),
-              const SizedBox(height: 8),
-
-              // 3) 해시태그 (있을 때만)
-              if (course.hashtags.isNotEmpty)
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: course.hashtags.map((tag) {
-                    return Chip(
-                      label: Text('#$tag'),
-                      backgroundColor: Colors.green.shade50,
-                      labelStyle: const TextStyle(fontSize: 12),
-                    );
-                  }).toList(),
-                ),
-              if (course.hashtags.isNotEmpty) const SizedBox(height: 8),
-
-              // 4) 일정(장소) 썸네일
-              if (course.schedules.isNotEmpty)
-                SizedBox(
-                  // ── 100 →  90 으로 살짝만 줄였습니다.
-                  //       높이를 조금만 줄여주면 아래 버튼과 겹치지 않습니다.
-                  height: 90,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: course.schedules.length,
-                    itemBuilder: (context, index) {
-                      final sch = course.schedules[index];
-                      final String? placeName = sch.placeName;
-                      final String? placeImage = sch.placeImage;
-
-                      Widget thumbnail;
-                      if (placeImage != null && placeImage.isNotEmpty) {
-                        if (placeImage.startsWith('http')) {
-                          thumbnail = Image.network(
-                            placeImage,
-                            width: 80,
-                            height: 80,
-                            fit: BoxFit.cover,
-                            errorBuilder: (ctx, err, stack) => Container(
-                              width: 80,
-                              height: 80,
-                              color: Colors.grey.shade300,
-                              alignment: Alignment.center,
-                              child: const Icon(Icons.broken_image, size: 24),
-                            ),
-                          );
-                        } else if (placeImage.startsWith('/data/') ||
-                            placeImage.startsWith('file://')) {
-                          thumbnail = Image.file(
-                            File(placeImage),
-                            width: 80,
-                            height: 80,
-                            fit: BoxFit.cover,
-                            errorBuilder: (ctx, err, stack) => Container(
-                              width: 80,
-                              height: 80,
-                              color: Colors.grey.shade300,
-                              alignment: Alignment.center,
-                              child: const Icon(Icons.broken_image, size: 24),
-                            ),
-                          );
-                        } else {
-                          // 상대 경로라면 BASE_URL 붙여서 네트워크로
-                          final fullUrl = '$BASE_URL$placeImage';
-                          thumbnail = Image.network(
-                            fullUrl,
-                            width: 80,
-                            height: 80,
-                            fit: BoxFit.cover,
-                            errorBuilder: (ctx, err, stack) => Container(
-                              width: 80,
-                              height: 80,
-                              color: Colors.grey.shade300,
-                              alignment: Alignment.center,
-                              child: const Icon(Icons.broken_image, size: 24),
-                            ),
-                          );
-                        }
+                    Widget image;
+                    if (placeImage != null && placeImage.isNotEmpty) {
+                      if (placeImage.startsWith('http')) {
+                        image = Image.network(
+                          placeImage,
+                          width: 200,
+                          height: 200,
+                          fit: BoxFit.cover,
+                          errorBuilder: (ctx, err, stack) => Container(
+                            width: 200,
+                            height: 200,
+                            color: Colors.grey.shade300,
+                            alignment: Alignment.center,
+                            child: const Icon(Icons.broken_image, size: 24),
+                          ),
+                        );
+                      } else if (placeImage.startsWith('/data/') ||
+                          placeImage.startsWith('file://')) {
+                        image = Image.file(
+                          File(placeImage),
+                          width: 200,
+                          height: 200,
+                          fit: BoxFit.cover,
+                          errorBuilder: (ctx, err, stack) => Container(
+                            width: 200,
+                            height: 200,
+                            color: Colors.grey.shade300,
+                            alignment: Alignment.center,
+                            child: const Icon(Icons.broken_image, size: 24),
+                          ),
+                        );
                       } else {
-                        thumbnail = Container(
-                          width: 80,
-                          height: 80,
-                          color: Colors.grey.shade300,
-                          alignment: Alignment.center,
-                          child:
-                              const Icon(Icons.image_not_supported, size: 24),
+                        final fullUrl = '$BASE_URL$placeImage';
+                        image = Image.network(
+                          fullUrl,
+                          width: 200,
+                          height: 200,
+                          fit: BoxFit.cover,
+                          errorBuilder: (ctx, err, stack) => Container(
+                            width: 200,
+                            height: 200,
+                            color: Colors.grey.shade300,
+                            alignment: Alignment.center,
+                            child: const Icon(Icons.broken_image, size: 24),
+                          ),
                         );
                       }
-
-                      return Container(
-                        width: 80,
-                        margin: const EdgeInsets.only(right: 12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: thumbnail,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              placeName ?? '장소명 없음',
-                              style: const TextStyle(fontSize: 12),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                            ),
-                          ],
-                        ),
+                    } else {
+                      image = Container(
+                        width: 200,
+                        height: 200,
+                        color: Colors.grey.shade300,
+                        alignment: Alignment.center,
+                        child: const Icon(Icons.image_not_supported, size: 24),
                       );
-                    },
-                  ),
-                )
-              else
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                    }
+
+                    return Container(
+                      width: 200,
+                      margin: const EdgeInsets.only(right: 12),
+                      child: Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: image,
+                          ),
+                          Positioned(
+                            bottom: 8,
+                            left: 8,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
+                              color: Colors.black54,
+                              child: Text(
+                                '${index + 1}. ${placeName ?? '장소명 없음'}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                child: Text(
+                  '대표 장소: 일정 없음',
+                  style: TextStyle(color: Colors.grey.shade600),
+                ),
+              ),
+            const SizedBox(height: 8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
                   child: Text(
-                    '대표 장소: 일정 없음',
-                    style: TextStyle(color: Colors.grey.shade600),
+                    '$nickname님의 ${course.courseName}',
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
-
-              const SizedBox(height: 8),
-              // 공유/즐겨찾기 카운트 표시
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.share),
-                        onPressed: () =>
-                            _showShareDialog(course.id, course.courseName),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.share),
+                      onPressed: () =>
+                          _showShareDialog(course.id, course.courseName),
+                    ),
+                    Text(
+                      '${course.shareCount}',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 16),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        _myCourseIds.contains(course.id)
+                            ? Icons.favorite
+                            : Icons.favorite_border,
+                        color: _myCourseIds.contains(course.id)
+                            ? Colors.red
+                            : null,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${course.shareCount}',
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(width: 16),
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          _myCourseIds.contains(course.id)
-                              ? Icons.favorite
-                              : Icons.favorite_border,
-                          color: _myCourseIds.contains(course.id)
-                              ? Colors.red
-                              : null,
-                        ),
-                        onPressed: () => _toggleFavorite(course),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${course.favoriteCount}',
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
+                      onPressed: () => _toggleFavorite(course),
+                    ),
+                    Text(
+                      '${course.favoriteCount}',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
