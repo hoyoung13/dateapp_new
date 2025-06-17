@@ -5,6 +5,8 @@ import 'constants.dart';
 import 'zzim.dart';
 import 'foodplace.dart';
 import 'dart:io';
+import 'user_provider.dart';
+import 'package:provider/provider.dart';
 
 class CollectionDetailPage extends StatefulWidget {
   final Map<String, dynamic> collection;
@@ -98,6 +100,40 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
     }
   }
 
+  Future<void> _favoriteCollection() async {
+    final userId = Provider.of<UserProvider>(context, listen: false).userId;
+    if (userId == null) return;
+    final collId = collection['id'];
+    if (collId == null) return;
+    final url = Uri.parse('$BASE_URL/zzim/collections');
+    final body = {
+      'user_id': userId,
+      'collection_name': collection['collection_name'],
+      'description': collection['description'],
+      'thumbnail': collection['thumbnail'],
+      'is_public': false,
+      'favorite_from_collection_id': collId,
+    };
+    try {
+      final resp = await http.post(url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(body));
+      if (resp.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('내 컬렉션에 저장되었습니다.')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('저장 실패: ${resp.statusCode}')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('오류: $e')),
+      );
+    }
+  }
+
   Future<void> _deletePlace(
       BuildContext context, int collectionId, int placeId) async {
     final url =
@@ -166,7 +202,11 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
   @override
   Widget build(BuildContext context) {
     bool isPublic = collection['is_public'] == true;
-
+    final userId = Provider.of<UserProvider>(context, listen: false).userId;
+    final dynamic owner = collection['user_id'];
+    final bool isOwner = owner != null &&
+        userId != null &&
+        owner.toString() == userId.toString();
     // created_at → "YYYY-MM-DD"
     String creationDate = '';
     if (collection['created_at'] != null) {
@@ -235,70 +275,102 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                InkWell(
-                  onTap: () {
-                    if (collectionId != null) _showEditDialog(collectionId);
-                  },
-                  child: Column(
-                    children: const [
-                      Icon(Icons.edit, color: Colors.black),
-                      SizedBox(height: 4),
-                      Text('편집',
-                          style: TextStyle(fontSize: 14, color: Colors.black)),
-                    ],
+                if (isOwner) ...[
+                  InkWell(
+                    onTap: () {
+                      if (collectionId != null) _showEditDialog(collectionId);
+                    },
+                    child: Column(
+                      children: const [
+                        Icon(Icons.edit, color: Colors.black),
+                        SizedBox(height: 4),
+                        Text('편집',
+                            style:
+                                TextStyle(fontSize: 14, color: Colors.black)),
+                      ],
+                    ),
                   ),
-                ),
-                InkWell(
-                  onTap: () {
-                    // 공유 로직
-                  },
-                  child: Column(
-                    children: const [
-                      Icon(Icons.share, color: Colors.black),
-                      SizedBox(height: 4),
-                      Text('공유',
-                          style: TextStyle(fontSize: 14, color: Colors.black)),
-                    ],
+                  InkWell(
+                    onTap: () {
+                      // 공유 로직
+                    },
+                    child: Column(
+                      children: const [
+                        Icon(Icons.share, color: Colors.black),
+                        SizedBox(height: 4),
+                        Text('공유',
+                            style:
+                                TextStyle(fontSize: 14, color: Colors.black)),
+                      ],
+                    ),
                   ),
-                ),
-                InkWell(
-                  onTap: () async {
-                    if (collectionId == null) {
-                      print('컬렉션 ID가 없습니다. 삭제 불가');
-                      return;
-                    }
-                    final bool? confirm = await showDialog<bool>(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: const Text('정말 삭제하시겠습니까?'),
-                          content: const Text('삭제 후 복구가 불가능합니다.'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, false),
-                              child: const Text('취소'),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, true),
-                              child: const Text('삭제'),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                    if (confirm == true) {
-                      await _deleteCollection(context, collectionId);
-                    }
-                  },
-                  child: Column(
-                    children: const [
-                      Icon(Icons.delete, color: Colors.black),
-                      SizedBox(height: 4),
-                      Text('삭제',
-                          style: TextStyle(fontSize: 14, color: Colors.black)),
-                    ],
+                  InkWell(
+                    onTap: () async {
+                      if (collectionId == null) {
+                        print('컬렉션 ID가 없습니다. 삭제 불가');
+                        return;
+                      }
+                      final bool? confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text('정말 삭제하시겠습니까?'),
+                            content: const Text('삭제 후 복구가 불가능합니다.'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text('취소'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                child: const Text('삭제'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                      if (confirm == true) {
+                        await _deleteCollection(context, collectionId);
+                      }
+                    },
+                    child: Column(
+                      children: const [
+                        Icon(Icons.delete, color: Colors.black),
+                        SizedBox(height: 4),
+                        Text('삭제',
+                            style:
+                                TextStyle(fontSize: 14, color: Colors.black)),
+                      ],
+                    ),
                   ),
-                ),
+                ] else ...[
+                  InkWell(
+                    onTap: () {
+                      // 공유 로직
+                    },
+                    child: Column(
+                      children: const [
+                        Icon(Icons.share, color: Colors.black),
+                        SizedBox(height: 4),
+                        Text('공유',
+                            style:
+                                TextStyle(fontSize: 14, color: Colors.black)),
+                      ],
+                    ),
+                  ),
+                  InkWell(
+                    onTap: _favoriteCollection,
+                    child: Column(
+                      children: const [
+                        Icon(Icons.favorite_border, color: Colors.black),
+                        SizedBox(height: 4),
+                        Text('찜',
+                            style:
+                                TextStyle(fontSize: 14, color: Colors.black)),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: 16),
@@ -323,7 +395,7 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                         itemCount: places.length,
                         itemBuilder: (context, index) {
                           final place = places[index];
-                          return _buildPlaceCard(collectionId!, place);
+                          return _buildPlaceCard(collectionId!, place, isOwner);
                         },
                       );
                     }
@@ -337,7 +409,7 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
   }
 
   /// 카드 형태로 장소 표시 (이미지, 카테고리, 장소 이름, 별점, 해시태그, 우측 하트)
-  Widget _buildPlaceCard(int collectionId, dynamic place) {
+  Widget _buildPlaceCard(int collectionId, dynamic place, bool isOwner) {
     // 예시 필드명 (실제 DB 구조에 맞게 수정)
     final String? imageUrl = (place['images'] != null &&
             place['images'] is List &&
@@ -425,31 +497,32 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                         fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () async {
-                    final bool? confirm = await showDialog<bool>(
-                      context: context,
-                      builder: (_) => AlertDialog(
-                        title: const Text('장소 삭제'),
-                        content: const Text('해당 장소를 콜렉션에서 삭제하시겠습니까?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, false),
-                            child: const Text('취소'),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, true),
-                            child: const Text('삭제'),
-                          ),
-                        ],
-                      ),
-                    );
-                    if (confirm == true) {
-                      _deletePlace(context, collectionId, place['id']);
-                    }
-                  },
-                ),
+                if (isOwner)
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () async {
+                      final bool? confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (_) => AlertDialog(
+                          title: const Text('장소 삭제'),
+                          content: const Text('해당 장소를 콜렉션에서 삭제하시겠습니까?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text('취소'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: const Text('삭제'),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (confirm == true) {
+                        _deletePlace(context, collectionId, place['id']);
+                      }
+                    },
+                  ),
                 const Icon(Icons.favorite_border, color: Colors.grey),
               ],
             ),
