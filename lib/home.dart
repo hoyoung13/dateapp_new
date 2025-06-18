@@ -177,8 +177,8 @@ class _HomeContentState extends State<HomeContent> {
     super.initState();
     _loadRegions();
     _fetchWeeklyRanking();
-    _fetchCategoryRanking('먹기'); // 맛집
-    _fetchCategoryRanking('카페'); // 카페
+    _fetchCategoryRanking('맛집'); // 맛집
+    _fetchCategoryRanking('카페/술집'); // 카페/술집
     _fetchCategoryRanking('장소'); // 장소
     _fetchCategoryRanking('놀거리'); // 놀거리
     _fetchCategoryRanking('보기'); // 보기
@@ -224,11 +224,11 @@ class _HomeContentState extends State<HomeContent> {
     // category 예: '먹기', '카페', '장소', '놀거리'
     late void Function(List<Map<String, dynamic>>) setter;
     switch (category) {
-      case '먹기':
+      case '맛집':
         setter = (v) => setState(() => foodRanking = v);
         setState(() => foodRanking = null);
         break;
-      case '카페':
+      case '카페/술집':
         setter = (v) => setState(() => cafeRanking = v);
         setState(() => cafeRanking = null);
         break;
@@ -380,7 +380,7 @@ class _HomeContentState extends State<HomeContent> {
                 Navigator.push(context,
                     MaterialPageRoute(builder: (_) => const FoodPage()));
               }),
-              _categoryButton('카페', 'assets/icons/cafe.png', () {
+              _categoryButton('카페/술집', 'assets/icons/cafe.png', () {
                 Navigator.push(context,
                     MaterialPageRoute(builder: (_) => const CafePage()));
               }),

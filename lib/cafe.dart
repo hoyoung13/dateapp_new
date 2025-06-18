@@ -54,7 +54,7 @@ class _CafePageState extends State<CafePage> {
           registeredPlaces = data
               .where((place) =>
                   place['main_category'] != null &&
-                  place['main_category'] == "마시기")
+                  place['main_category'] == "카페/술집")
               .map((e) => e as Map<String, dynamic>)
               .toList();
         });

@@ -291,11 +291,52 @@ class _FoodPageState extends State<FoodPage> {
     '빵'
   ];
   List<String> selectedWithWho = [];
-  final List<String> withWhoOptions = ['혼자', '친구', '연인', '가족', '반려동물'];
+  final List<String> withWhoOptions = [
+    '혼자',
+    '친구',
+    '연인',
+    '가족',
+    '반려동물',
+    '직장/동료',
+    '동호회/모임',
+    '아이와 함께',
+  ];
+
   List<String> selectedPurpose = [];
-  final List<String> purposeOptions = ['식사', '데이트', '힐링', '운동', '회식'];
+  final List<String> purposeOptions = [
+    '식사',
+    '데이트',
+    '힐링',
+    '회식',
+    '산책',
+    '특별한 날',
+    '놀기'
+  ];
   List<String> selectedMood = [];
-  final List<String> moodOptions = ['로맨틱', '액티브', '편안함', '모던', '전통적'];
+  final List<String> moodOptions = [
+    '감성적인',
+    '로맨틱한',
+    '아늑한',
+    '조용한',
+    '몽환적인',
+    '분위기 있는 조명',
+    '잔잔한 음악',
+    '활기찬',
+    '사교적인',
+    '트렌디한',
+    '자유로운',
+    '이벤트성',
+    '핫플레이스',
+    '사진 찍기 좋은',
+    '자연 친화적',
+    '햇살 좋은',
+    '공기 좋은',
+    '바다 근처',
+    '산책하기 좋은',
+    '힐링 공간',
+    '집중하기 좋은',
+    '혼자 있기 좋은'
+  ];
   @override
   void initState() {
     super.initState();
