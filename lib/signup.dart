@@ -88,147 +88,184 @@ class _SignupPageState extends State<SignupPage> {
     }
   }
 
+  InputDecoration _inputDecoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: TextStyle(color: Colors.grey.shade400),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(
+          width: 1,
+          color: Colors.black.withOpacity(0.15),
+        ),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(
+          width: 1,
+          color: Colors.blue,
+        ),
+      ),
+      filled: true,
+      fillColor: Colors.white,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('회원가입')),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Center(
-                child: Text(
-                  '회원가입',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+      body: Center(
+        child: SingleChildScrollView(
+          child: Container(
+            width: 422,
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 20),
+                const Center(
+                  child: Text(
+                    '회원가입',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
 
-              // ✅ 닉네임 입력 + 중복 확인 버튼
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _nicknameController,
-                      decoration: InputDecoration(
-                        labelText: "닉네임",
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                const SizedBox(height: 20),
+
+                // ✅ 닉네임 입력 + 중복 확인 버튼
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _nicknameController,
+                        decoration: _inputDecoration('닉네임'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    SizedBox(
+                      height: 54,
+                      child: ElevatedButton(
+                        onPressed: _checkNickname,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF80E9FF),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          '중복 확인',
+                          style: TextStyle(color: Colors.black),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  ElevatedButton(
-                    onPressed: _checkNickname,
-                    child: const Text("중복 확인"),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 15),
+                  ],
+                ),
+                const SizedBox(height: 15),
 
-              // ✅ 이메일 입력 + 중복 확인 버튼
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _emailController,
-                      decoration: InputDecoration(
-                        labelText: "이메일",
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                // ✅ 이메일 입력 + 중복 확인 버튼
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _emailController,
+                        decoration: _inputDecoration('이메일'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    SizedBox(
+                      height: 54,
+                      child: ElevatedButton(
+                        onPressed: _checkEmail,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF80E9FF),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          '중복 확인',
+                          style: TextStyle(color: Colors.black),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  ElevatedButton(
-                    onPressed: _checkEmail,
-                    child: const Text("중복 확인"),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 15),
+                  ],
+                ),
+                const SizedBox(height: 15),
 
-              // ✅ 비밀번호 입력
-              TextField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: "비밀번호",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+                // ✅ 비밀번호 입력
+                TextField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  decoration: _inputDecoration('비밀번호'),
+                ),
+                const SizedBox(height: 15),
+
+                // ✅ 이름 입력
+                TextField(
+                  controller: _nameController,
+                  decoration: _inputDecoration('이름'),
+                ),
+                const SizedBox(height: 15),
+
+                // ✅ 생년월일 입력
+                TextField(
+                  controller: _birthDateController,
+                  decoration: _inputDecoration('생년월일 (YYYY-MM-DD)'),
+                ),
+                const SizedBox(height: 20),
+
+                // ✅ 성별 선택 (라디오 버튼)
+                const Text("성별"),
+                Row(
+                  children: [
+                    Radio(
+                      value: "male",
+                      groupValue: _selectedGender,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedGender = value.toString();
+                        });
+                      },
+                    ),
+                    const Text("남성"),
+                    Radio(
+                      value: "female",
+                      groupValue: _selectedGender,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedGender = value.toString();
+                        });
+                      },
+                    ),
+                    const Text("여성"),
+                  ],
+                ),
+
+                // ✅ 회원가입 버튼
+                SizedBox(
+                  height: 54,
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _signup,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF80E9FF),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      '회원가입',
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 15),
-
-              // ✅ 이름 입력
-              TextField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: "이름",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 15),
-
-              // ✅ 생년월일 입력
-              TextField(
-                controller: _birthDateController,
-                decoration: InputDecoration(
-                  labelText: "생년월일 (YYYY-MM-DD)",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // ✅ 성별 선택 (라디오 버튼)
-              const Text("성별"),
-              Row(
-                children: [
-                  Radio(
-                    value: "male",
-                    groupValue: _selectedGender,
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedGender = value.toString();
-                      });
-                    },
-                  ),
-                  const Text("남성"),
-                  Radio(
-                    value: "female",
-                    groupValue: _selectedGender,
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedGender = value.toString();
-                      });
-                    },
-                  ),
-                  const Text("여성"),
-                ],
-              ),
-
-              // ✅ 회원가입 버튼
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _signup,
-                  child: const Text(
-                    "회원가입",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
