@@ -14,6 +14,7 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'zzimdetail.dart';
 import 'chat_course_card.dart';
+import 'chat_collection_card.dart';
 
 class ChatPage extends StatefulWidget {
   final int roomId;
@@ -475,26 +476,9 @@ class _ChatPageState extends State<ChatPage> {
                         else if (msg['course_id'] != null)
                           ChatCourseCard(courseId: msg['course_id'])
                         else if (msg['collection_id'] != null)
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => CollectionDetailPage(
-                                      collection: {
-                                        'id': msg['collection_id'],
-                                        'collection_name': msg['content']
-                                      }),
-                                ),
-                              );
-                            },
-                            child: Text(
-                              msg['content'] ?? '',
-                              style: const TextStyle(
-                                  decoration: TextDecoration.underline,
-                                  color: Colors.blue),
-                            ),
-                          )
+                          ChatCollectionCard(
+                              collectionId: msg['collection_id'],
+                              senderId: msg['sender_id'])
                         else
                           Text(msg['content'] ?? ''),
                         // 보낸 시간
