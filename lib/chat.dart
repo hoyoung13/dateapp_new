@@ -15,6 +15,7 @@ import 'package:image_picker/image_picker.dart';
 import 'zzimdetail.dart';
 import 'chat_course_card.dart';
 import 'chat_collection_card.dart';
+import 'chat_place_card.dart';
 
 class ChatPage extends StatefulWidget {
   final int roomId;
@@ -387,14 +388,6 @@ class _ChatPageState extends State<ChatPage> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.place),
-                title: const Text('장소'),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _pickAndSendPlace();
-                },
-              ),
-              ListTile(
                 leading: const Icon(Icons.collections_bookmark),
                 title: const Text('컬렉션'),
                 onTap: () {
@@ -472,6 +465,11 @@ class _ChatPageState extends State<ChatPage> {
                                 ? msg['image_url']
                                 : '$BASE_URL${msg['image_url']}',
                             width: 200,
+                          )
+                        else if (msg['place_id'] != null)
+                          ChatPlaceCard(
+                            placeId: msg['place_id'],
+                            fallbackText: msg['content'] ?? '',
                           )
                         else if (msg['course_id'] != null)
                           ChatCourseCard(courseId: msg['course_id'])
