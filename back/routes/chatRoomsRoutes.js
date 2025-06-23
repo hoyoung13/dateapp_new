@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const {startchat, getMessages, postMessage,listUserRooms} = require('../controllers/chatRoomsController');
 const multer = require('multer');
 const path = require('path');
 const {startchat, getMessages, postMessage,listUserRooms, uploadMessageImage} = require('../controllers/chatRoomsController');
