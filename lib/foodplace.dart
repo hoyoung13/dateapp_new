@@ -14,14 +14,14 @@ import 'constants.dart';
 import 'user_provider.dart';
 
 const List<String> _reportCategories = [
-  'closed',
-  'wrong address',
-  'wrong category',
-  'wrong hours',
-  'wrong phone',
-  'wrong menu/price',
-  'wrong photo',
-  'other',
+  '폐업/휴업',
+  '주소 오류',
+  '카테고리 오류',
+  '영업시간 오류',
+  '전화번호 오류',
+  '메뉴/가격 오류',
+  '사진 오류',
+  '기타',
 ];
 
 class PlaceInPageUIOnly extends StatefulWidget {

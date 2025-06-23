@@ -121,6 +121,8 @@ class MyApp extends StatelessWidget {
           return AdminEditPlacePage(
             placeId: args['placeId'] as int,
             reportId: args['reportId'] as int,
+            reason: args['reason'] as String?,
+            category: args['category'] as String?,
           );
         },
         '/inquiry': (context) => const InquiryPage(),

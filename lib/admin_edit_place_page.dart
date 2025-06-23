@@ -9,9 +9,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AdminEditPlacePage extends StatefulWidget {
   final int placeId;
   final int reportId;
-  const AdminEditPlacePage(
-      {Key? key, required this.placeId, required this.reportId})
-      : super(key: key);
+  final String? reason;
+  final String? category;
+
+  const AdminEditPlacePage({
+    Key? key,
+    required this.placeId,
+    required this.reportId,
+    this.reason,
+    this.category,
+  }) : super(key: key);
 
   @override
   State<AdminEditPlacePage> createState() => _AdminEditPlacePageState();
@@ -106,6 +113,16 @@ class _AdminEditPlacePageState extends State<AdminEditPlacePage> {
         padding: const EdgeInsets.all(16),
         child: ListView(
           children: [
+            if (widget.category != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Text('신고 카테고리: ${widget.category}'),
+              ),
+            if (widget.reason != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: Text('신고 사유: ${widget.reason}'),
+              ),
             TextField(
                 controller: nameCtrl,
                 decoration: const InputDecoration(labelText: '이름')),
