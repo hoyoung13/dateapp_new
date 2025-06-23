@@ -10,6 +10,8 @@ import 'chat_message.dart';
 import 'course_detail_loader.dart';
 import 'zzimlist.dart';
 import 'selectplace.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 class ChatPage extends StatefulWidget {
   final int roomId;
@@ -239,6 +241,110 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
+  Future<void> _pickAndSendPhoto() async {
+    // TODO: implement photo sending logic
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile == null) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('사진 전송 기능은 아직 구현되지 않았습니다.')),
+    );
+  }
+
+  Future<void> _pickAndSendZzim() async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final userId = userProvider.userId;
+    final nickname = userProvider.nickname ?? '';
+    if (userId == null) return;
+
+    Map<String, dynamic>? result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => ZzimListDialog(userId: userId),
+    );
+
+    if (result == null) return;
+
+    if (!result.containsKey('place_name')) {
+      result = await Navigator.push<Map<String, dynamic>>(
+        context,
+        MaterialPageRoute(
+          builder: (_) => SelectplacePage(collection: result!),
+        ),
+      );
+      if (result == null) return;
+    }
+
+    final placeId = result['id'];
+    final placeName = result['place_name'] ?? '';
+
+    final resp = await http.post(
+      Uri.parse('$BASE_URL/chat/rooms/${widget.roomId}/messages'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'sender_id': userId,
+        'type': 'place',
+        'place_id': placeId,
+        'content': '${nickname}님이 $placeName 장소를 공유했습니다.',
+      }),
+    );
+
+    if (resp.statusCode == 200 || resp.statusCode == 201) {
+      _loadChatHistory();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('장소 전송 실패')),
+      );
+    }
+  }
+
+  void _showAttachmentMenu() {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo),
+                title: const Text('사진'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickAndSendPhoto();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.map),
+                title: const Text('코스'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickAndSendCourse();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.place),
+                title: const Text('장소'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickAndSendPlace();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.favorite),
+                title: const Text('찜목록'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickAndSendZzim();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final me = Provider.of<UserProvider>(context, listen: false).userId;
@@ -329,16 +435,9 @@ class _ChatPageState extends State<ChatPage> {
                   const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
               child: Row(
                 children: [
-                  TextButton.icon(
-                    onPressed: _pickAndSendPlace,
-                    icon: const Icon(Icons.place, size: 20),
-                    label: const Text('장소 전송'),
-                  ),
-                  const SizedBox(width: 8),
-                  TextButton.icon(
-                    onPressed: _pickAndSendCourse,
-                    icon: const Icon(Icons.map, size: 20),
-                    label: const Text('코스 전송'),
+                  IconButton(
+                    icon: const Icon(Icons.add),
+                    onPressed: _showAttachmentMenu,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
