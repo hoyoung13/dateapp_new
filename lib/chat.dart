@@ -12,6 +12,7 @@ import 'zzimlist.dart';
 import 'selectplace.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'zzimdetail.dart';
 
 class ChatPage extends StatefulWidget {
   final int roomId;
@@ -246,9 +247,34 @@ class _ChatPageState extends State<ChatPage> {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
     if (pickedFile == null) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('사진 전송 기능은 아직 구현되지 않았습니다.')),
+    final request =
+        http.MultipartRequest('POST', Uri.parse('$BASE_URL/chat/upload-image'));
+    request.files
+        .add(await http.MultipartFile.fromPath('image', pickedFile.path));
+
+    final resp = await request.send();
+    if (resp.statusCode != 200) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('이미지 업로드 실패')));
+      return;
+    }
+    final body = await resp.stream.bytesToString();
+    final data = json.decode(body) as Map<String, dynamic>;
+    final imageUrl = data['image_url'];
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final userId = userProvider.userId;
+    if (userId == null) return;
+
+    await http.post(
+      Uri.parse('$BASE_URL/chat/rooms/${widget.roomId}/messages'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'sender_id': userId,
+        'type': 'image',
+        'image_url': imageUrl,
+      }),
     );
+    _loadChatHistory();
   }
 
   Future<void> _pickAndSendZzim() async {
@@ -298,6 +324,42 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
+  Future<void> _pickAndSendCollection() async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final userId = userProvider.userId;
+    final nickname = userProvider.nickname ?? '';
+    if (userId == null) return;
+
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => ZzimListDialog(userId: userId),
+    );
+
+    if (result == null) return;
+
+    final collId = result['id'];
+    final collName = result['collection_name'] ?? '';
+
+    final resp = await http.post(
+      Uri.parse('$BASE_URL/chat/rooms/${widget.roomId}/messages'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'sender_id': userId,
+        'type': 'collection',
+        'collection_id': collId,
+        'content': '${nickname}님이 $collName 컬렉션을 공유했습니다.',
+      }),
+    );
+
+    if (resp.statusCode == 200 || resp.statusCode == 201) {
+      _loadChatHistory();
+    } else {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('컬렉션 전송 실패')));
+    }
+  }
+
   void _showAttachmentMenu() {
     showModalBottomSheet(
       context: context,
@@ -328,6 +390,14 @@ class _ChatPageState extends State<ChatPage> {
                 onTap: () {
                   Navigator.pop(ctx);
                   _pickAndSendPlace();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.collections_bookmark),
+                title: const Text('컬렉션'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickAndSendCollection();
                 },
               ),
               ListTile(
@@ -394,7 +464,14 @@ class _ChatPageState extends State<ChatPage> {
                           ),
 
                         // 본문
-                        if (msg['course_id'] != null)
+                        if (msg['image_url'] != null)
+                          Image.network(
+                            msg['image_url'].toString().startsWith('http')
+                                ? msg['image_url']
+                                : '$BASE_URL${msg['image_url']}',
+                            width: 200,
+                          )
+                        else if (msg['course_id'] != null)
                           GestureDetector(
                             onTap: () {
                               Navigator.push(
@@ -412,8 +489,29 @@ class _ChatPageState extends State<ChatPage> {
                                   color: Colors.blue),
                             ),
                           )
+                        else if (msg['collection_id'] != null)
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => CollectionDetailPage(
+                                      collection: {
+                                        'id': msg['collection_id'],
+                                        'collection_name': msg['content']
+                                      }),
+                                ),
+                              );
+                            },
+                            child: Text(
+                              msg['content'] ?? '',
+                              style: const TextStyle(
+                                  decoration: TextDecoration.underline,
+                                  color: Colors.blue),
+                            ),
+                          )
                         else
-                          Text(msg['content']),
+                          Text(msg['content'] ?? ''),
                         // 보낸 시간
                         Text(
                           msg['sent_at'],

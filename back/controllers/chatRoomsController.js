@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const BASE_URL = process.env.BASE_URL || '';
 
 /**
  * 1:1 채팅방 조회 또는 생성
@@ -57,8 +58,9 @@ const getMessages = async (req, res) => {
   try {/*m.type,*/
     const { rows } = await pool.query(`
 SELECT m.id, m.sender_id, u.nickname AS sender_nickname, m.content,
-             m.course_id,  m.sent_at      FROM messages m
-      JOIN users u ON u.id = m.sender_id
+m.course_id, m.place_id, m.image_url, m.collection_id,
+       m.sent_at
+      FROM messages m      JOIN users u ON u.id = m.sender_id
       WHERE m.room_id = $1
       ORDER BY m.sent_at
     `, [roomId]);
@@ -77,7 +79,7 @@ SELECT m.id, m.sender_id, u.nickname AS sender_nickname, m.content,
 
 const postMessage = async (req, res) => {
     const roomId     = parseInt(req.params.roomId, 10);
-    const { sender_id, type, content, place_id, course_id } = req.body;
+    const { sender_id, type, content, place_id, course_id, image_url, collection_id } = req.body;
   
     if (!sender_id) {
       return res.status(400).json({ error: "sender_id is required" });
@@ -108,7 +110,20 @@ const postMessage = async (req, res) => {
         VALUES($1, $2, $3, $4)
         RETURNING *`;
         params = [roomId, sender_id, course_id, content];
+
+      } else if (type === 'image') {
+        query = `
+          INSERT INTO messages(room_id, sender_id, image_url)
+          VALUES($1, $2, $3)
+          RETURNING *`;
+        params = [roomId, sender_id, image_url];
   
+      } else if (type === 'collection') {
+        query = `
+          INSERT INTO messages(room_id, sender_id, collection_id, content)
+          VALUES($1, $2, $3, $4)
+          RETURNING *`;
+        params = [roomId, sender_id, collection_id, content];  
     } else {
       return res.status(400).json({ error: "invalid message type" });
     }
@@ -163,4 +178,13 @@ const listUserRooms = async (req, res) => {
   }
 };
 
-module.exports = {startchat, getMessages, postMessage, listUserRooms};
+const uploadMessageImage = async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
+  const relative = `/uploads/${req.file.filename}`;
+  const imageUrl = BASE_URL ? `${BASE_URL}${relative}` : relative;
+  res.json({ image_url: imageUrl });
+};
+
+module.exports = {startchat, getMessages, postMessage, listUserRooms, uploadMessageImage};
