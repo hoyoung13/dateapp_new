@@ -13,6 +13,7 @@ import 'selectplace.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'zzimdetail.dart';
+import 'chat_course_card.dart';
 
 class ChatPage extends StatefulWidget {
   final int roomId;
@@ -472,23 +473,7 @@ class _ChatPageState extends State<ChatPage> {
                             width: 200,
                           )
                         else if (msg['course_id'] != null)
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => CourseDetailLoaderPage(
-                                      courseId: msg['course_id']),
-                                ),
-                              );
-                            },
-                            child: Text(
-                              msg['content'] ?? '',
-                              style: const TextStyle(
-                                  decoration: TextDecoration.underline,
-                                  color: Colors.blue),
-                            ),
-                          )
+                          ChatCourseCard(courseId: msg['course_id'])
                         else if (msg['collection_id'] != null)
                           GestureDetector(
                             onTap: () {
