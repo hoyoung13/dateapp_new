@@ -16,6 +16,7 @@ import 'zzimdetail.dart';
 import 'chat_course_card.dart';
 import 'chat_collection_card.dart';
 import 'chat_place_card.dart';
+import 'package:intl/intl.dart';
 
 class ChatPage extends StatefulWidget {
   final int roomId;
@@ -207,8 +208,11 @@ class _ChatPageState extends State<ChatPage> {
                 itemCount: courses.length,
                 itemBuilder: (c, i) {
                   final course = courses[i];
+                  final name =
+                      course['courseName'] ?? course['course_name'] ?? '';
+
                   return ListTile(
-                    title: Text(course['course_name'] ?? ''),
+                    title: Text(name),
                     onTap: () =>
                         Navigator.pop(c, course as Map<String, dynamic>),
                   );
@@ -223,7 +227,7 @@ class _ChatPageState extends State<ChatPage> {
     if (selected == null) return;
 
     final courseId = selected['id'];
-    final courseName = selected['course_name'] ?? '';
+    final name = selected['courseName'] ?? selected['course_name'] ?? '';
 
     final resp = await http.post(
       Uri.parse('$BASE_URL/chat/rooms/${widget.roomId}/messages'),
@@ -232,7 +236,7 @@ class _ChatPageState extends State<ChatPage> {
         'sender_id': userId,
         'type': 'course',
         'course_id': courseId,
-        'content': '${nickname}님이 $courseName 코스를 공유했습니다.',
+        'content': '${nickname}님이 $name 코스를 공유했습니다.',
       }),
     );
 
@@ -434,17 +438,35 @@ class _ChatPageState extends State<ChatPage> {
                 // 이 부분이 핵심입니다!
                 final isMine = msg['sender_id'] == me;
 
-                return Align(
+                final sentAt = DateTime.parse(msg['sent_at']).toLocal();
+                final prevSentAt = index > 0
+                    ? DateTime.parse(_messages[index - 1]['sent_at']).toLocal()
+                    : null;
+                final showDateHeader = prevSentAt == null ||
+                    sentAt.year != prevSentAt.year ||
+                    sentAt.month != prevSentAt.month ||
+                    sentAt.day != prevSentAt.day;
+
+                final isTextMsg = msg['image_url'] == null &&
+                    msg['place_id'] == null &&
+                    msg['course_id'] == null &&
+                    msg['collection_id'] == null;
+
+                final messageBubble = Align(
                   alignment:
                       isMine ? Alignment.centerRight : Alignment.centerLeft,
                   child: Container(
                     margin: const EdgeInsets.symmetric(vertical: 4),
                     padding:
                         const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: isMine ? Colors.cyan[100] : Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    decoration: isTextMsg
+                        ? BoxDecoration(
+                            color: isMine
+                                ? Colors.cyan[100]
+                                : Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(12),
+                          )
+                        : null,
                     child: Column(
                       crossAxisAlignment: isMine
                           ? CrossAxisAlignment.end
@@ -481,7 +503,7 @@ class _ChatPageState extends State<ChatPage> {
                           Text(msg['content'] ?? ''),
                         // 보낸 시간
                         Text(
-                          msg['sent_at'],
+                          DateFormat('HH:mm').format(sentAt),
                           style:
                               const TextStyle(fontSize: 10, color: Colors.grey),
                         ),
@@ -489,6 +511,22 @@ class _ChatPageState extends State<ChatPage> {
                     ),
                   ),
                 );
+                if (showDateHeader) {
+                  return Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Text(
+                          DateFormat('yyyy년 M월 d일').format(sentAt),
+                          style:
+                              const TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                      ),
+                      messageBubble,
+                    ],
+                  );
+                }
+                return messageBubble;
               },
             ),
           ),

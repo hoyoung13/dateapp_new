@@ -24,6 +24,14 @@ import 'aichatscreen.dart';
 import 'shop_page.dart';
 import 'foodplace.dart';
 import 'public_collections_page.dart';
+import 'full_ranking_page.dart';
+
+class _CategoryItem {
+  final String label;
+  final String icon;
+  final Widget Function() builder;
+  const _CategoryItem(this.label, this.icon, this.builder);
+}
 
 void main() {
   runApp(const HomePage());
@@ -171,6 +179,23 @@ class _HomeContentState extends State<HomeContent> {
     'img/banner6.png',
     'img/banner7.png',
   ];
+  final List<_CategoryItem> _categories = [
+    _CategoryItem('맛집', 'assets/icons/food.png', () => const FoodPage()),
+    _CategoryItem('카페/술집', 'assets/icons/cafe.png', () => const CafePage()),
+    _CategoryItem('장소', 'assets/icons/place.png', () => const WalkPage()),
+    _CategoryItem('놀거리', 'assets/icons/play.png', () => const PlayPage()),
+    _CategoryItem('보기', 'assets/icons/look.png', () => const SeePage()),
+    _CategoryItem('보기', 'assets/icons/play.png', () => const SeePage()),
+    _CategoryItem(
+        '코스 제작', 'assets/icons/course.png', () => const CourseCreationPage()),
+    _CategoryItem('AI 코스', 'assets/icons/ai.png', () => const ChatScreen()),
+    _CategoryItem(
+        '사용자 코스', 'assets/icons/user_course.png', () => const AllCoursesPage()),
+    _CategoryItem('사용자 컬렉션', 'assets/icons/user_course.png',
+        () => const PublicCollectionsPage()),
+    _CategoryItem(
+        '포인트 상점', 'assets/icons/festival.png', () => const ShopPage()),
+  ];
 
   @override
   void initState() {
@@ -284,6 +309,7 @@ class _HomeContentState extends State<HomeContent> {
           _buildRankingSection(
             title: _getRankingTitle("이번주 랭킹"),
             data: weeklyRanking,
+            category: null,
           ),
           const SizedBox(height: 20),
 
@@ -291,6 +317,7 @@ class _HomeContentState extends State<HomeContent> {
           _buildRankingSection(
             title: _getRankingTitle("데이트 맛집 랭킹"),
             data: foodRanking,
+            category: '맛집',
           ),
           const SizedBox(height: 20),
 
@@ -298,6 +325,7 @@ class _HomeContentState extends State<HomeContent> {
           _buildRankingSection(
             title: _getRankingTitle("데이트 카페 랭킹"),
             data: cafeRanking,
+            category: '카페/술집',
           ),
           const SizedBox(height: 20),
 
@@ -305,6 +333,7 @@ class _HomeContentState extends State<HomeContent> {
           _buildRankingSection(
             title: _getRankingTitle("데이트 장소 랭킹"),
             data: spotRanking,
+            category: '장소',
           ),
           const SizedBox(height: 20),
 
@@ -312,11 +341,13 @@ class _HomeContentState extends State<HomeContent> {
           _buildRankingSection(
             title: _getRankingTitle("데이트 놀거리 랭킹"),
             data: playRanking,
+            category: '놀거리',
           ),
           const SizedBox(height: 20),
           _buildRankingSection(
             title: _getRankingTitle("데이트 보기 랭킹"),
             data: seeRanking,
+            category: '보기',
           ),
           const SizedBox(height: 20),
         ],
@@ -392,11 +423,7 @@ class _HomeContentState extends State<HomeContent> {
                 Navigator.push(context,
                     MaterialPageRoute(builder: (_) => const PlayPage()));
               }),
-              _categoryButton('보기', 'assets/icons/look.png', () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => const SeePage()));
-              }),
-              _categoryButton('보기', 'assets/icons/play.png', () {
+              _categoryButton('보기', 'assets/icons/festival.png', () {
                 Navigator.push(context,
                     MaterialPageRoute(builder: (_) => const SeePage()));
               }),
@@ -582,6 +609,7 @@ class _HomeContentState extends State<HomeContent> {
   Widget _buildRankingSection({
     required String title,
     required List<Map<String, dynamic>>? data,
+    String? category,
   }) {
     if (data == null) {
       // 로딩 중
@@ -613,7 +641,15 @@ class _HomeContentState extends State<HomeContent> {
               ),
               TextButton(
                   onPressed: () {
-                    // TODO: “더보기” 눌렀을 때 전체 랭킹 페이지로 이동
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => FullRankingPage(
+                          title: title,
+                          category: category,
+                        ),
+                      ),
+                    );
                   },
                   child: const Text("더보기")),
             ],
