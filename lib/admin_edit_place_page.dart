@@ -71,14 +71,32 @@ class _AdminEditPlacePageState extends State<AdminEditPlacePage> {
     final resp = await http.get(uri, headers: headers);
     if (resp.statusCode == 200) {
       final data = jsonDecode(resp.body) as Map<String, dynamic>;
+      String? main = data['main_category'];
+      if (!subCategoryMap.containsKey(main)) {
+        if (main == '먹기') {
+          main = '맛집';
+        } else if (main == '카페') {
+          main = '카페/술집';
+        } else if (main == '놀거리') {
+          main = '놀기';
+        } else {
+          main = null;
+        }
+      }
+
+      // Validate sub category if main category is valid
+      String? sub = data['sub_category'];
+      if (main == null || !(subCategoryMap[main]?.contains(sub) ?? false)) {
+        sub = null;
+      }
       setState(() {
         nameCtrl.text = data['place_name'] ?? '';
         addressCtrl.text = data['address'] ?? '';
         phoneCtrl.text = data['phone'] ?? '';
         descCtrl.text = data['description'] ?? '';
         priceCtrl.text = jsonEncode(data['price_info'] ?? []);
-        selectedMainCategory = data['main_category'];
-        selectedSubCategory = data['sub_category'];
+        selectedMainCategory = main;
+        selectedSubCategory = sub;
         images
           ..clear()
           ..addAll((data['images'] as List<dynamic>? ?? [])
