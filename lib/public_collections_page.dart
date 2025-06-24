@@ -6,6 +6,7 @@ import 'zzimdetail.dart';
 import 'dart:io';
 import 'user_provider.dart';
 import 'package:provider/provider.dart';
+import 'theme_colors.dart';
 
 class PublicCollectionsPage extends StatefulWidget {
   const PublicCollectionsPage({Key? key}) : super(key: key);
@@ -118,7 +119,7 @@ class _PublicCollectionsPageState extends State<PublicCollectionsPage> {
                   ),
                   child: Text(
                     '+$extra',
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: Colors.black),
                   ),
                 )
               ],
@@ -161,7 +162,7 @@ class _PublicCollectionsPageState extends State<PublicCollectionsPage> {
                       const SizedBox(width: 4),
                       Text(
                         nickname,
-                        style: const TextStyle(color: Colors.white, shadows: [
+                        style: const TextStyle(color: Colors.black, shadows: [
                           Shadow(blurRadius: 2, color: Colors.black)
                         ]),
                       ),
@@ -299,7 +300,7 @@ class _PublicCollectionsPageState extends State<PublicCollectionsPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('사용자 컬렉션'),
-        backgroundColor: Colors.cyan[100],
+        backgroundColor: AppColors.accentLight,
         foregroundColor: Colors.black,
       ),
       body: FutureBuilder<List<dynamic>>(

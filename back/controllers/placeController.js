@@ -13,7 +13,7 @@ const createPlace = async (req, res) => {
 
   try {
     let {
-      user_id,
+      //user_id,
       place_name,
       description,
       address,
@@ -28,7 +28,19 @@ const createPlace = async (req, res) => {
       purpose,
       mood
     } = req.body;
-    const isAdmin = req.body.is_admin === true || req.body.isAdmin === true;
+    //const isAdmin = req.body.is_admin === true || req.body.isAdmin === true;
+    const user_id = (req.user && (req.user.userId || req.user.id)) || null;
+    if (!user_id) {
+      return res.status(401).json({ error: 'User ID required' });
+    }
+
+    let isAdmin;
+    if (req.user && typeof req.user.isAdmin !== 'undefined') {
+      isAdmin = req.user.isAdmin === true;
+    } else {
+      const { rows } = await pool.query('SELECT is_admin FROM users WHERE id=$1', [user_id]);
+      isAdmin = rows.length && rows[0].is_admin === true;
+    }
     const isApproved = isAdmin ? true : false;
     // 문자열 형태일 때만 JSON.parse
     if (typeof operating_hours === "string") {

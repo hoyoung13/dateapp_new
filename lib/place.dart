@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'theme_colors.dart';
 
 class PlacePage extends StatefulWidget {
   const PlacePage({super.key});
@@ -49,7 +50,7 @@ class _PlacePageState extends State<PlacePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFFB9FDF9),
+        backgroundColor: AppColors.appBar,
         title: const Text(
           '장소 검색',
           style: TextStyle(color: Colors.black, fontSize: 16),

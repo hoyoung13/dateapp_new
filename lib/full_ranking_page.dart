@@ -1,11 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
 import 'constants.dart';
 import 'foodplace.dart';
+import 'theme_colors.dart';
 
 class FullRankingPage extends StatefulWidget {
   final String title;
@@ -63,7 +62,7 @@ class _FullRankingPageState extends State<FullRankingPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
-        backgroundColor: Colors.cyan[100],
+        backgroundColor: AppColors.accentLight,
         foregroundColor: Colors.black,
       ),
       body: rankingData == null
@@ -139,7 +138,7 @@ class _FullRankingPageState extends State<FullRankingPage> {
               color: Colors.black54,
               child: Text(
                 '#${index + 1}',
-                style: const TextStyle(color: Colors.white, fontSize: 12),
+                style: const TextStyle(color: Colors.black, fontSize: 12),
               ),
             ),
           ),

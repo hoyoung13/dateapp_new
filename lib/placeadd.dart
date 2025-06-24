@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:time_picker_spinner/time_picker_spinner.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'theme_colors.dart';
 
 class PlaceAdditionalInfoPage extends StatefulWidget {
   final Map<String, dynamic> placeData; // 장소 검색 시 전달받은 데이터 (장소명, 주소)
@@ -219,7 +220,7 @@ class _PlaceAdditionalInfoPageState extends State<PlaceAdditionalInfoPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("장소 정보 입력", style: TextStyle(color: Colors.black)),
-        backgroundColor: const Color(0xFFB9FDF9),
+        backgroundColor: AppColors.appBar,
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
@@ -338,7 +339,8 @@ class _PlaceAdditionalInfoPageState extends State<PlaceAdditionalInfoPage> {
                             padding: const EdgeInsets.symmetric(
                                 vertical: 8, horizontal: 12),
                             decoration: BoxDecoration(
-                              color: isSelected ? Colors.cyan : Colors.white,
+                              color:
+                                  isSelected ? AppColors.appBar : Colors.white,
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(color: Colors.black),
                             ),

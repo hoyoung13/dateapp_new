@@ -124,7 +124,7 @@ class _ChatRoomsPageState extends State<ChatRoomsPage> {
                                     ? '99+'
                                     : room.unreadCount.toString(),
                                 style: const TextStyle(
-                                    color: Colors.white, fontSize: 12),
+                                    color: Colors.black, fontSize: 12),
                               ),
                             ),
                         ],

@@ -66,6 +66,8 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.appBar, // 🔹 상단바 색상 설정
+        shape: const Border(bottom: BorderSide.none),
+
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -383,7 +385,7 @@ class _HomeContentState extends State<HomeContent> {
               ),
               child: Text(
                 "${_currentBannerIndex + 1}/${_bannerImages.length}",
-                style: const TextStyle(color: Colors.white, fontSize: 12),
+                style: const TextStyle(color: Colors.black, fontSize: 12),
               ),
             ),
           ),

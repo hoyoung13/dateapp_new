@@ -86,7 +86,13 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.grey.shade100,
-        appBarTheme: const AppBarTheme(backgroundColor: AppColors.appBar),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: AppColors.appBar,
+          elevation: 0,
+          shape: Border(
+            bottom: BorderSide(color: AppColors.border),
+          ),
+        ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.accentLight,

@@ -461,7 +461,7 @@ class _ZzimPageState extends State<ZzimPage> {
                         },
                         child: const Text(
                           '저장',
-                          style: TextStyle(color: Colors.white),
+                          style: TextStyle(color: Colors.black),
                         ),
                       ),
                       const SizedBox(height: 8),

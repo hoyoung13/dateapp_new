@@ -544,7 +544,7 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
                               child: Text(
                                 '${index + 1}. ${placeName ?? '장소명 없음'}',
                                 style: const TextStyle(
-                                  color: Colors.white,
+                                  color: Colors.black,
                                   fontSize: 14,
                                 ),
                               ),

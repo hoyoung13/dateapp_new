@@ -195,7 +195,7 @@ class _CollectionSelectSheetState extends State<CollectionSelectSheet> {
                 },
                 child: const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
-                  child: Text("저장", style: TextStyle(color: Colors.white)),
+                  child: Text("저장", style: TextStyle(color: Colors.black)),
                 ),
               ),
             ),

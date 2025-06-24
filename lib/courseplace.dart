@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'review_write_page.dart';
 import 'allplace.dart';
+import 'theme_colors.dart';
 
 class CourseplacePage extends StatefulWidget {
   // 다른 화면에서 'place_name', 'images', 'description', 'operating_hours', 'phone', 'address', 'main_category', 'sub_category', 'hashtags' 등 UI에 필요한 데이터를 넘긴다고 가정
@@ -475,10 +476,10 @@ class _CourseplacePageState extends State<CourseplacePage>
           children: [
             Container(
               height: MediaQuery.of(context).padding.top,
-              color: const Color(0xFFB9FDF9),
+              color: AppColors.appBar,
             ),
             Container(
-              color: const Color(0xFFB9FDF9),
+              color: AppColors.appBar,
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
               child: Center(
                 child: Text(
@@ -495,7 +496,7 @@ class _CourseplacePageState extends State<CourseplacePage>
                 children: [
                   _buildTopImage(),
                   Container(
-                    color: Colors.cyan[50],
+                    color: AppColors.accentLight,
                     child: TabBar(
                       controller: _tabController,
                       labelColor: Colors.black,
@@ -541,14 +542,14 @@ class _CourseplacePageState extends State<CourseplacePage>
                 Navigator.of(context).pop(enriched);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.cyan,
+                backgroundColor: AppColors.appBar,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
               child: const Text(
                 '코스 등록하기',
-                style: TextStyle(color: Colors.white, fontSize: 16),
+                style: TextStyle(color: Colors.black, fontSize: 16),
               ),
             ),
           ),

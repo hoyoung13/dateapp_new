@@ -170,7 +170,7 @@ class _PlaceInPageState extends State<PlaceInPage>
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey[300]!),
+            border: Border.all(color: AppColors.border),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -201,7 +201,7 @@ class _PlaceInPageState extends State<PlaceInPage>
         color: Colors.white,
         borderRadius: BorderRadius.circular(12), // 모서리 둥글게
         border: Border.all(
-          color: Colors.grey, // 테두리 색상
+          color: AppColors.border, // 테두리 색상
           width: 2, // 테두리 두께
         ),
       ),
@@ -371,14 +371,14 @@ class _PlaceInPageState extends State<PlaceInPage>
                         onPressed: _onEdit,
                         child: const Text(
                           "수정",
-                          style: TextStyle(color: Colors.white),
+                          style: TextStyle(color: Colors.black),
                         ),
                       ),
                       TextButton(
                         onPressed: _registerPlace,
                         child: const Text(
                           "등록",
-                          style: TextStyle(color: Colors.white),
+                          style: TextStyle(color: Colors.black),
                         ),
                       ),
                     ],
