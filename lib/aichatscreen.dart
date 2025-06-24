@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'theme_colors.dart';
 
 import 'aichat.dart'; // ChatMessage 모델
 import 'openai_service.dart'; // OpenAIService
@@ -16,6 +17,8 @@ enum StepState {
   askDistrict, // 구/군 선택
   askNeighborhood, // 동/읍/면 선택
   askQuery, // 누구와 무엇을
+  askCourse, // 코스 내용 입력
+
   inChat
 }
 
@@ -40,6 +43,9 @@ class _ChatScreenState extends State<ChatScreen> {
   String? _district;
   String? _neighborhood;
   String? _userQuery;
+  String? _courseQuery;
+  List<dynamic>? _coursePlaces;
+  bool _awaitingCourseFeedback = false;
 
   @override
   void initState() {
@@ -67,6 +73,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
   // 버튼 제안
   List<String> get _suggestions {
+    if (_awaitingCourseFeedback) {
+      return ['예', '아니오'];
+    }
     switch (_step) {
       case StepState.chooseFlow:
         return ['장소추천', '코스추천'];
@@ -86,6 +95,16 @@ class _ChatScreenState extends State<ChatScreen> {
   // 버튼 눌렀을 때
   Future<void> _onTapSuggestion(String txt) async {
     _addUser(txt);
+    if (_awaitingCourseFeedback) {
+      _awaitingCourseFeedback = false;
+      if (txt == '예') {
+        await _saveCourse();
+      } else {
+        await _sendAI('알겠습니다.');
+      }
+      setState(() {});
+      return;
+    }
     switch (_step) {
       case StepState.chooseFlow:
         if (txt == '장소추천') {
@@ -93,7 +112,9 @@ class _ChatScreenState extends State<ChatScreen> {
           _step = StepState.askRegion;
           await _sendAI('좋습니다! 어느 지역을 원하시나요? (예: 서울, 인천)');
         } else {
-          _addAI('아직 코스추천은 구현 중입니다.');
+          _flow = FlowType.course;
+          _step = StepState.askRegion;
+          await _sendAI('좋습니다! 어느 지역을 원하시나요? (예: 서울, 인천)');
         }
         break;
       case StepState.askDistrict:
@@ -113,9 +134,13 @@ class _ChatScreenState extends State<ChatScreen> {
         } else {
           _neighborhood = txt;
         }
-        // 핵심! 장소 추천 플로우에서 더 이상 세부 정보 안 묻고 자유 질문만
-        _step = StepState.askQuery;
-        await _sendAI('누구와 무엇을 하고 싶으신가요? 예: 혼자 카페를 가고싶어.');
+        if (_flow == FlowType.course) {
+          _step = StepState.askCourse;
+          await _sendAI('원하시는 코스를 말해주세요.');
+        } else {
+          _step = StepState.askQuery;
+          await _sendAI('누구와 무엇을 하고 싶으신가요? 예: 혼자 카페를 가고싶어.');
+        }
         break;
       default:
         break;
@@ -150,6 +175,59 @@ class _ChatScreenState extends State<ChatScreen> {
       }
     } catch (e) {
       _addAI('죄송해요, 장소 추천 요청 중 오류가 발생했어요.');
+    }
+  }
+
+  Future<void> _recommendCourse() async {
+    await _sendAI('코스를 추천중입니다…');
+    try {
+      final resp = await http.get(
+        Uri.parse('$BASE_URL/aicourse/fixed'),
+      );
+      if (resp.statusCode == 200) {
+        final data = jsonDecode(resp.body);
+        if (data['course'] != null && data['course'] is List) {
+          _coursePlaces = List<dynamic>.from(data['course']);
+          int idx = 1;
+          for (var p in _coursePlaces!) {
+            _addAI('$idx. ${p['place_name']} - ${p['place_address']}');
+            idx++;
+          }
+          await _sendAI('마음에 드십니까? (예/아니오)');
+          _awaitingCourseFeedback = true;
+        } else {
+          _addAI('죄송해요, 추천 코스를 찾지 못했습니다.');
+        }
+      } else {
+        _addAI('서버 오류: 코스 추천 실패 (${resp.statusCode})');
+      }
+    } catch (e) {
+      _addAI('죄송해요, 코스 추천 요청 중 오류가 발생했어요.');
+    }
+  }
+
+  Future<void> _saveCourse() async {
+    if (_coursePlaces == null) return;
+    final payload = {
+      'user_id': 1,
+      'course_name': _courseQuery ?? 'AI 추천 코스',
+      'with_who': [],
+      'purpose': [],
+      'schedules': _coursePlaces,
+    };
+    try {
+      final resp = await http.post(
+        Uri.parse('$BASE_URL/aicourse/save'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(payload),
+      );
+      if (resp.statusCode == 201) {
+        await _sendAI('코스가 저장되었습니다.');
+      } else {
+        await _sendAI('코스 저장 실패 (${resp.statusCode})');
+      }
+    } catch (e) {
+      await _sendAI('죄송해요, 코스 저장 중 오류가 발생했어요.');
     }
   }
 
@@ -188,6 +266,13 @@ class _ChatScreenState extends State<ChatScreen> {
       await _recommendPlace();
       return;
     }
+    if (_step == StepState.askCourse) {
+      _courseQuery = text;
+      _step = StepState.inChat;
+      setState(() {});
+      await _recommendCourse();
+      return;
+    }
   }
 
   @override
@@ -207,7 +292,8 @@ class _ChatScreenState extends State<ChatScreen> {
               child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
-                      color: m.fromAI ? Colors.grey[200] : Colors.cyan[100],
+                      color:
+                          m.fromAI ? Colors.grey[200] : AppColors.accentLight,
                       borderRadius: BorderRadius.circular(8)),
                   child: Text(m.text)),
             );
