@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'constants.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'theme_colors.dart';
+import 'auth_helper.dart';
 
 class PlaceInPage extends StatefulWidget {
   final Map<String, dynamic> payload; // 등록된 place 데이터
@@ -95,9 +96,11 @@ class _PlaceInPageState extends State<PlaceInPage>
     debugPrint("▶️ [DEBUG] operating_hours = ${payload['operating_hours']}");
     debugPrint("▶️ [DEBUG] 최종 payload = ${jsonEncode(payload)}");
     try {
+      final headers = await AuthHelper.authHeaders();
+
       final response = await http.post(
         Uri.parse(apiUrl),
-        headers: {"Content-Type": "application/json"},
+        headers: headers,
         body: jsonEncode(payload),
       );
       if (response.statusCode == 201) {

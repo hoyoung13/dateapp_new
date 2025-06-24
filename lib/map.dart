@@ -668,7 +668,11 @@ class _MapPageState extends State<MapPage> {
     } else if (trafficType == 2) {
       // 버스
       icon = Icons.directions_bus;
-      color = Colors.blue;
+      int? busType;
+      if (subPath["lane"] is List && (subPath["lane"] as List).isNotEmpty) {
+        busType = (subPath["lane"] as List)[0]["type"] as int?;
+      }
+      color = getBusTypeColor(busType);
       label = "$sectionTime분";
     } else {
       // 도보
@@ -717,42 +721,119 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
+  Widget _buildNaverTransitTile(BuildContext context, Map path) {
+    final info = path["info"];
+    final totalTime = info?["totalTime"] ?? 0;
+    final payment = info?["payment"] ?? 0;
+    final subPaths = path["subPath"] as List<dynamic>? ?? [];
+
+    // 시작/도착 지점 이름 추출
+    String startName = '';
+    String endName = '';
+    if (subPaths.isNotEmpty) {
+      startName = subPaths.first["startName"] ?? '';
+      endName = subPaths.last["endName"] ?? '';
+    }
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [BoxShadow(color: Colors.grey.shade300, blurRadius: 5)],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('$totalTime분',
+                  style: const TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.bold)),
+              Text('${NumberFormat('#,###').format(payment)}원',
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          _buildTransitBar(subPaths),
+          const SizedBox(height: 4),
+          _buildStationRow(startName, subPaths, endName),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTransitBar(List<dynamic> subPaths) {
+    List<Widget> widgets = [];
+    for (int i = 0; i < subPaths.length; i++) {
+      final sp = subPaths[i];
+      int type = sp["trafficType"] ?? 3;
+      IconData icon;
+      Color color;
+      if (type == 1) {
+        String lineName = '';
+        if (sp["lane"] is List && (sp["lane"] as List).isNotEmpty) {
+          lineName = (sp["lane"] as List)[0]["name"] ?? '';
+        }
+        icon = Icons.directions_subway;
+        color = getSubwayLineColor(lineName);
+      } else if (type == 2) {
+        int? busType;
+        if (sp["lane"] is List && (sp["lane"] as List).isNotEmpty) {
+          busType = (sp["lane"] as List)[0]["type"] as int?;
+        }
+        icon = Icons.directions_bus;
+        color = getBusTypeColor(busType);
+      } else {
+        icon = Icons.directions_walk;
+        color = Colors.grey;
+      }
+
+      widgets.add(Icon(icon, size: 16, color: color));
+      if (i != subPaths.length - 1) {
+        widgets.add(Expanded(
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 2),
+            height: 2,
+            color: color.withOpacity(0.6),
+          ),
+        ));
+      }
+    }
+    return Row(children: widgets);
+  }
+
+  Widget _buildStationRow(
+      String startName, List<dynamic> subPaths, String endName) {
+    List<String> names = [startName];
+    for (var sp in subPaths) {
+      names.add(sp["endName"] ?? '');
+    }
+    List<Widget> widgets = [];
+    for (int i = 0; i < names.length; i++) {
+      widgets.add(Expanded(
+        child: Text(
+          names[i],
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontSize: 12),
+        ),
+      ));
+      if (i != names.length - 1) {
+        widgets.add(const Icon(Icons.chevron_right, size: 16));
+      }
+    }
+    return Row(children: widgets);
+  }
+
   Widget _buildTransitListView() {
     return ListView.builder(
       itemCount: _transitPaths.length,
       itemBuilder: (context, index) {
         final path = _transitPaths[index];
-        final info = path["info"];
-        final totalTime = info?["totalTime"] ?? 0;
-        final payment = info?["payment"] ?? 0;
-        final subPathList = path["subPath"] ?? [];
-
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: [BoxShadow(color: Colors.grey.shade300, blurRadius: 5)],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // (1) 상단: 전체 소요시간, 요금
-              Text(
-                "$totalTime분, ${NumberFormat('#,###').format(payment)}원",
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              // (2) 바 형태 구간 표시 (이미 구현한 _buildSubPathRowScaled 등)
-              _buildSubPathRowScaled(context, subPathList),
-              const SizedBox(height: 8),
-              // (3) 버스/지하철 구간 상세 목록
-              _buildSubPathDetails(subPathList),
-            ],
-          ),
-        );
+        return _buildNaverTransitTile(context, path);
       },
     );
   }
@@ -791,8 +872,8 @@ class _MapPageState extends State<MapPage> {
         detailWidgets.add(
           Row(
             children: [
-              const Icon(Icons.directions_subway,
-                  size: 20, color: Colors.orange),
+              Icon(Icons.directions_subway,
+                  size: 20, color: getSubwayLineColor(lineName)),
               const SizedBox(width: 8),
               Text(
                 "$lineName, $sectionTime분 소요",
@@ -823,11 +904,12 @@ class _MapPageState extends State<MapPage> {
             busTypeLabel = ""; // 기본
           }
         }
+        Color busColor = getBusTypeColor(busType);
 
         detailWidgets.add(
           Row(
             children: [
-              const Icon(Icons.directions_bus, size: 20, color: Colors.blue),
+              Icon(Icons.directions_bus, size: 20, color: busColor),
               const SizedBox(width: 8),
               Text(
                 // 예) "간선 36번, 13분 소요"
@@ -889,6 +971,25 @@ class _MapPageState extends State<MapPage> {
     return Colors.grey; // 기본값 (호선 정보가 없을 때 등)
   }
 
+  Color getBusTypeColor(int? type) {
+    switch (type) {
+      case 1:
+        return const Color(0xFF0090D2); // 공항
+      case 2:
+        return const Color(0xFF33CC33); // 마을
+      case 3:
+        return const Color(0xFF0072BC); // 간선
+      case 4:
+        return const Color(0xFF6CBF47); // 지선
+      case 5:
+        return const Color(0xFFFF0000); // 광역
+      case 6:
+        return const Color(0xFFFFA200); // 순환
+      default:
+        return Colors.blueGrey;
+    }
+  }
+
   /// (1) subPath 각각을 위젯으로 변환
   /// 구간 하나의 위젯을 반환하는 함수
   /// 구간 하나의 위젯을 반환하는 함수
@@ -919,7 +1020,11 @@ class _MapPageState extends State<MapPage> {
       label = "$sectionTime분";
     } else if (trafficType == 2) {
       // 버스
-      color = Colors.blue;
+      int? busType;
+      if (subPath["lane"] is List && (subPath["lane"] as List).isNotEmpty) {
+        busType = (subPath["lane"] as List)[0]["type"] as int?;
+      }
+      color = getBusTypeColor(busType);
       icon = Icons.directions_bus;
       label = "$sectionTime분";
     } else {
@@ -966,12 +1071,12 @@ class _MapPageState extends State<MapPage> {
     switch (trafficType) {
       case 1: // 지하철
         icon = Icons.directions_subway;
-        color = Colors.orange;
+        color = getSubwayLineColor('');
         label = "$sectionTime분 지하철";
         break;
       case 2: // 버스
         icon = Icons.directions_bus;
-        color = Colors.blue;
+        color = getBusTypeColor(null);
         label = "$sectionTime분 버스";
         break;
       case 3: // 도보

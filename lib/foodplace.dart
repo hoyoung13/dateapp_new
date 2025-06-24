@@ -342,14 +342,14 @@ class _PlaceInPageUIOnlyState extends State<PlaceInPageUIOnly>
       }
       return Container(
         width: double.infinity,
-        height: 150,
+        height: 260,
         color: Colors.grey[300],
         child: imageWidget,
       );
     } else {
       return Container(
         width: double.infinity,
-        height: 150,
+        height: 260,
         color: Colors.grey[300],
         child: const Center(
           child: Text("대표 이미지 없음", style: TextStyle(fontSize: 16)),
@@ -735,7 +735,7 @@ class _PlaceInPageUIOnlyState extends State<PlaceInPageUIOnly>
                 TextButton(
                   onPressed: widget.onApprove,
                   child:
-                      const Text('승인', style: TextStyle(color: Colors.white)),
+                      const Text('승인', style: TextStyle(color: Colors.black)),
                 ),
             ] else ...[
               IconButton(
