@@ -57,7 +57,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _dobController.text = _formatDate(userProvider.birthDate ?? "");
     _emailController.text = userProvider.email ?? "";
     _nameController.text = userProvider.name ?? "";
-    _selectedGender = userProvider.gender ?? "남성"; 
+    _selectedGender = userProvider.gender ?? "남성";
 
     if (userProvider.profileImagePath != null &&
         userProvider.profileImagePath!.isNotEmpty) {
@@ -171,7 +171,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             shape: BoxShape.circle,
-                            border: Border.all(color: Colors.grey),
+                            border: Border.all(color: AppColors.border),
                           ),
                           padding: const EdgeInsets.all(5),
                           child: const Icon(Icons.camera_alt, size: 18),

@@ -383,7 +383,7 @@ class _AICoursePageState extends State<AICoursePage> {
                         style: TextStyle(color: AppColors.appBar),
                       ),
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: AppColors.appBar),
+                        side: const BorderSide(color: AppColors.border),
                       ),
                     ),
                   ),

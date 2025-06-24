@@ -92,6 +92,17 @@ class MyApp extends StatelessWidget {
             backgroundColor: AppColors.accentLight,
           ),
         ),
+        inputDecorationTheme: InputDecorationTheme(
+          border: OutlineInputBorder(
+            borderSide: const BorderSide(color: AppColors.border),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderSide: const BorderSide(color: AppColors.border),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: const BorderSide(color: AppColors.border),
+          ),
+        ),
       ),
       initialRoute: '/login',
       routes: {
