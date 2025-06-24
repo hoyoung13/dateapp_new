@@ -54,8 +54,13 @@ class _AdminPlaceReportsPageState extends State<AdminPlaceReportsPage> {
   }
 
   Future<void> _edit(PlaceReport report) async {
-    final result = await Navigator.pushNamed(context, '/admin/edit-place',
-        arguments: {'placeId': report.placeId, 'reportId': report.id});
+    final result =
+        await Navigator.pushNamed(context, '/admin/edit-place', arguments: {
+      'placeId': report.placeId,
+      'reportId': report.id,
+      'reason': report.reason,
+      'category': report.category,
+    });
     if (result == true) {
       setState(() {
         _future = _loadReports();

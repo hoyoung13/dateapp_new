@@ -105,6 +105,21 @@ class _AdminEditPlacePageState extends State<AdminEditPlacePage> {
     Navigator.pop(context, true);
   }
 
+  Future<void> _noIssue() async {
+    final uri = Uri.parse('$BASE_URL/admin/place-reports/${widget.reportId}');
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    final headers = {
+      'Content-Type': 'application/json',
+      'user_id': '$_adminId'
+    };
+    if (token != null) headers['Authorization'] = 'Bearer $token';
+    await http.patch(uri,
+        headers: headers, body: jsonEncode({'message': '장소 정보에 문제가 없습니다.'}));
+    if (!mounted) return;
+    Navigator.pop(context, true);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
