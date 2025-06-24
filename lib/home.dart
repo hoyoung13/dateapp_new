@@ -69,7 +69,7 @@ class _HomePageState extends State<HomePage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              'DATE IT',
+              'PLACE IT',
               style: TextStyle(
                 fontSize: 20, // 글자 크기
                 fontWeight: FontWeight.bold, // Bold
@@ -415,11 +415,11 @@ class _HomeContentState extends State<HomeContent> {
                 Navigator.push(context,
                     MaterialPageRoute(builder: (_) => const CafePage()));
               }),
-              _categoryButton('장소', 'assets/icons/place.png', () {
+              _categoryButton('걷기', 'assets/icons/place.png', () {
                 Navigator.push(context,
                     MaterialPageRoute(builder: (_) => const WalkPage()));
               }),
-              _categoryButton('놀거리', 'assets/icons/play.png', () {
+              _categoryButton('놀기', 'assets/icons/play.png', () {
                 Navigator.push(context,
                     MaterialPageRoute(builder: (_) => const PlayPage()));
               }),

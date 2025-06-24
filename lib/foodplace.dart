@@ -101,6 +101,183 @@ class _PlaceInPageUIOnlyState extends State<PlaceInPageUIOnly>
     }
   }
 
+  void _showShareDialog(int placeId, String placeName) {
+    final userProvider = context.read<UserProvider>();
+    final userId = userProvider.userId;
+    final nickname = userProvider.nickname ?? '';
+    if (userId == null) return;
+
+    Future<List<dynamic>> fetchFriends() async {
+      final resp = await http.get(Uri.parse('$BASE_URL/fri/friends/$userId'));
+      if (resp.statusCode == 200) {
+        final data = json.decode(resp.body);
+        return data['friends'] as List<dynamic>;
+      }
+      return [];
+    }
+
+    Future<List<dynamic>> fetchRooms() async {
+      final resp =
+          await http.get(Uri.parse('$BASE_URL/chat/rooms/user/$userId'));
+      if (resp.statusCode == 200) {
+        final data = json.decode(resp.body);
+        return data['rooms'] as List<dynamic>;
+      }
+      return [];
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return SizedBox(
+          height: 400,
+          child: DefaultTabController(
+            length: 2,
+            child: Column(
+              children: [
+                const TabBar(tabs: [Tab(text: '친구'), Tab(text: '채팅')]),
+                Expanded(
+                  child: TabBarView(
+                    children: [
+                      FutureBuilder<List<dynamic>>(
+                        future: fetchFriends(),
+                        builder: (c, snap) {
+                          if (snap.connectionState != ConnectionState.done) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          }
+                          final friends = snap.data ?? [];
+                          if (friends.isEmpty) {
+                            return const Center(child: Text('친구가 없습니다.'));
+                          }
+                          return ListView.builder(
+                            itemCount: friends.length,
+                            itemBuilder: (c, i) {
+                              final f = friends[i];
+                              return ListTile(
+                                leading: CircleAvatar(
+                                  backgroundImage: f['profile_image'] != null &&
+                                          f['profile_image']
+                                              .toString()
+                                              .isNotEmpty
+                                      ? NetworkImage(f['profile_image'])
+                                      : null,
+                                  child: (f['profile_image'] == null ||
+                                          f['profile_image'].toString().isEmpty)
+                                      ? const Icon(Icons.person)
+                                      : null,
+                                ),
+                                title: Text(f['nickname'] ?? ''),
+                                onTap: () async {
+                                  final createResp = await http.post(
+                                    Uri.parse('$BASE_URL/chat/rooms/1on1'),
+                                    headers: {
+                                      'Content-Type': 'application/json'
+                                    },
+                                    body: json.encode(
+                                        {'userA': userId, 'userB': f['id']}),
+                                  );
+                                  if (createResp.statusCode == 200) {
+                                    final roomId =
+                                        json.decode(createResp.body)['roomId'];
+                                    final sendResp = await http.post(
+                                      Uri.parse(
+                                          '$BASE_URL/chat/rooms/$roomId/messages'),
+                                      headers: {
+                                        'Content-Type': 'application/json'
+                                      },
+                                      body: json.encode({
+                                        'sender_id': userId,
+                                        'type': 'place',
+                                        'place_id': placeId,
+                                        'content':
+                                            '${nickname}님이 $placeName 장소를 공유했습니다.',
+                                      }),
+                                    );
+                                    if (sendResp.statusCode == 200) {
+                                      Navigator.of(ctx).pop();
+                                    } else {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                            content: Text('장소를 공유하였습니다.')),
+                                      );
+                                      print(
+                                          'Failed to send place: ${sendResp.statusCode} ${sendResp.body}');
+                                    }
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('장소 공유 실패')),
+                                    );
+                                    print(
+                                        'Failed to create room: ${createResp.statusCode} ${createResp.body}');
+                                  }
+                                },
+                              );
+                            },
+                          );
+                        },
+                      ),
+                      FutureBuilder<List<dynamic>>(
+                        future: fetchRooms(),
+                        builder: (c, snap) {
+                          if (snap.connectionState != ConnectionState.done) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          }
+                          final rooms = snap.data ?? [];
+                          if (rooms.isEmpty) {
+                            return const Center(child: Text('채팅방이 없습니다.'));
+                          }
+                          return ListView.builder(
+                            itemCount: rooms.length,
+                            itemBuilder: (c, i) {
+                              final r = rooms[i];
+                              return ListTile(
+                                title: Text(r['room_name'] ?? ''),
+                                onTap: () async {
+                                  final roomId = r['room_id'];
+                                  final resp = await http.post(
+                                    Uri.parse(
+                                        '$BASE_URL/chat/rooms/$roomId/messages'),
+                                    headers: {
+                                      'Content-Type': 'application/json'
+                                    },
+                                    body: json.encode({
+                                      'sender_id': userId,
+                                      'type': 'place',
+                                      'place_id': placeId,
+                                      'content':
+                                          '${nickname}님이 $placeName 장소를 공유했습니다.',
+                                    }),
+                                  );
+                                  if (resp.statusCode == 200) {
+                                    Navigator.of(ctx).pop();
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('장소 공유 실패')),
+                                    );
+                                    print(
+                                        'Failed to share place to room $roomId: ${resp.statusCode} ${resp.body}');
+                                  }
+                                },
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   /// 지도 위젯 (네이버 지도 API 사용, 테두리/둥근 모서리 적용)
   Widget _buildMapView(String address) {
     if (_mapLatLng == null) {
@@ -558,6 +735,14 @@ class _PlaceInPageUIOnlyState extends State<PlaceInPageUIOnly>
                       const Text('승인', style: TextStyle(color: Colors.white)),
                 ),
             ] else ...[
+              IconButton(
+                icon: const Icon(Icons.share, color: Colors.black),
+                onPressed: () {
+                  final placeId = widget.payload['id'] as int;
+                  final placeName = widget.payload['place_name'] ?? '';
+                  _showShareDialog(placeId, placeName);
+                },
+              ),
               IconButton(
                 icon: const Icon(Icons.flag, color: Colors.black),
                 onPressed: () {
