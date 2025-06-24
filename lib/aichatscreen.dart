@@ -4,6 +4,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'theme_colors.dart';
+import 'chat_course_card.dart';
 
 import 'aichat.dart'; // ChatMessage 모델
 import 'openai_service.dart'; // OpenAIService
@@ -65,6 +66,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _addAI(String txt) {
     setState(() => _messages.add(ChatMessage(text: txt, fromAI: true)));
+  }
+
+  void _addCourseCard(int id) {
+    setState(() => _messages.add(ChatMessage(fromAI: true, courseId: id)));
   }
 
   Future<void> _sendAI(String prompt) async {
@@ -222,6 +227,13 @@ class _ChatScreenState extends State<ChatScreen> {
         body: jsonEncode(payload),
       );
       if (resp.statusCode == 201) {
+        final data = jsonDecode(resp.body);
+        final id = data['course_id'];
+        await _sendAI('코스가 저장되었습니다.');
+        if (id != null) {
+          _addCourseCard(id as int);
+        }
+        _awaitingCourseFeedback = false;
         await _sendAI('코스가 저장되었습니다.');
       } else {
         await _sendAI('코스 저장 실패 (${resp.statusCode})');
@@ -289,13 +301,18 @@ class _ChatScreenState extends State<ChatScreen> {
             return Align(
               alignment:
                   m.fromAI ? Alignment.centerLeft : Alignment.centerRight,
-              child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                      color:
-                          m.fromAI ? Colors.grey[200] : AppColors.accentLight,
-                      borderRadius: BorderRadius.circular(8)),
-                  child: Text(m.text)),
+              child: m.courseId != null
+                  ? ChatCourseCard(courseId: m.courseId!)
+                  : Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color:
+                            m.fromAI ? Colors.grey[200] : AppColors.accentLight,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(m.text ?? ''),
+                    ),
             );
           },
         )),
