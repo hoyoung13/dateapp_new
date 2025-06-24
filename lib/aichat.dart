@@ -4,5 +4,5 @@ class ChatMessage {
   final bool fromAI;
   final int? courseId;
 
-  ChatMessage({required this.text, required this.fromAI});
+  ChatMessage({this.text, required this.fromAI, this.courseId});
 }
