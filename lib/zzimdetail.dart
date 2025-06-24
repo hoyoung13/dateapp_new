@@ -228,7 +228,8 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                                             '${nickname}님이 ${name} 콜렉션을 공유했습니다.',
                                       }),
                                     );
-                                    if (sendResp.statusCode == 200) {
+                                    if (sendResp.statusCode == 200 ||
+                                        sendResp.statusCode == 201) {
                                       Navigator.of(ctx).pop();
                                     } else {
                                       ScaffoldMessenger.of(context)
@@ -286,7 +287,8 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                                           '${nickname}님이 ${name} 콜렉션을 공유했습니다.',
                                     }),
                                   );
-                                  if (resp.statusCode == 200) {
+                                  if (resp.statusCode == 200 ||
+                                      resp.statusCode == 201) {
                                     Navigator.of(ctx).pop();
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -528,7 +530,10 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                 ] else ...[
                   InkWell(
                     onTap: () {
-                      // 공유 로직
+                      if (collectionId != null) {
+                        _showShareDialogForCollection(
+                            collectionId, collection['collection_name'] ?? '');
+                      }
                     },
                     child: Column(
                       children: const [

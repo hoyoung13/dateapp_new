@@ -195,7 +195,8 @@ class _PlaceInPageUIOnlyState extends State<PlaceInPageUIOnly>
                                             '${nickname}님이 $placeName 장소를 공유했습니다.',
                                       }),
                                     );
-                                    if (sendResp.statusCode == 200) {
+                                    if (sendResp.statusCode == 200 ||
+                                        sendResp.statusCode == 201) {
                                       Navigator.of(ctx).pop();
                                     } else {
                                       ScaffoldMessenger.of(context)

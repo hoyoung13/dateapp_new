@@ -286,7 +286,8 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
                                             '${nickname}님이 ${courseName} 코스를 공유했습니다.',
                                       }),
                                     );
-                                    if (sendResp.statusCode == 200) {
+                                    if (sendResp.statusCode == 200 ||
+                                        sendResp.statusCode == 201) {
                                       Navigator.of(ctx).pop();
                                     } else {
                                       ScaffoldMessenger.of(context)

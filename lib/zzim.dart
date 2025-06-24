@@ -171,7 +171,8 @@ class _ZzimPageState extends State<ZzimPage> {
                                             '${nickname}님이 ${courseName} 코스를 공유했습니다.',
                                       }),
                                     );
-                                    if (sendResp.statusCode == 200) {
+                                    if (sendResp.statusCode == 200 ||
+                                        sendResp.statusCode == 201) {
                                       Navigator.of(ctx).pop();
                                     } else {
                                       ScaffoldMessenger.of(context)
@@ -228,7 +229,8 @@ class _ZzimPageState extends State<ZzimPage> {
                                           '${nickname}님이 ${courseName} 코스를 공유했습니다.',
                                     }),
                                   );
-                                  if (resp.statusCode == 200) {
+                                  if (resp.statusCode == 200 ||
+                                      resp.statusCode == 201) {
                                     Navigator.of(ctx).pop();
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
