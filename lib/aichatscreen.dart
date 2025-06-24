@@ -5,6 +5,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'theme_colors.dart';
 import 'chat_course_card.dart';
+import 'chat_course_preview_card.dart';
 
 import 'aichat.dart'; // ChatMessage 모델
 import 'openai_service.dart'; // OpenAIService
@@ -70,6 +71,14 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _addCourseCard(int id) {
     setState(() => _messages.add(ChatMessage(fromAI: true, courseId: id)));
+  }
+
+  void _addCoursePreview(List<dynamic> places, String name) {
+    setState(() => _messages.add(ChatMessage(
+          fromAI: true,
+          coursePreview: places,
+          courseName: name,
+        )));
   }
 
   Future<void> _sendAI(String prompt) async {
@@ -193,11 +202,8 @@ class _ChatScreenState extends State<ChatScreen> {
         final data = jsonDecode(resp.body);
         if (data['course'] != null && data['course'] is List) {
           _coursePlaces = List<dynamic>.from(data['course']);
-          int idx = 1;
-          for (var p in _coursePlaces!) {
-            _addAI('$idx. ${p['place_name']} - ${p['place_address']}');
-            idx++;
-          }
+          _addCoursePreview(_coursePlaces!, _courseQuery ?? 'AI 추천 코스');
+
           await _sendAI('마음에 드십니까? (예/아니오)');
           _awaitingCourseFeedback = true;
         } else {
@@ -301,18 +307,24 @@ class _ChatScreenState extends State<ChatScreen> {
             return Align(
               alignment:
                   m.fromAI ? Alignment.centerLeft : Alignment.centerRight,
-              child: m.courseId != null
-                  ? ChatCourseCard(courseId: m.courseId!)
-                  : Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color:
-                            m.fromAI ? Colors.grey[200] : AppColors.accentLight,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(m.text ?? ''),
-                    ),
+              child: m.coursePreview != null
+                  ? ChatCoursePreviewCard(
+                      courseName: m.courseName ?? 'AI 추천 코스',
+                      places: m.coursePreview!,
+                    )
+                  : m.courseId != null
+                      ? ChatCourseCard(courseId: m.courseId!)
+                      : Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: m.fromAI
+                                ? Colors.grey[200]
+                                : AppColors.accentLight,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(m.text ?? ''),
+                        ),
             );
           },
         )),
