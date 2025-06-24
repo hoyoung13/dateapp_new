@@ -113,6 +113,30 @@ const generateAICourse = async (req, res) => {
     return res.status(500).json({ success: false, error: '서버 오류' });
   }
 };
+// 고정된 장소 세 곳(id 1,2,3)을 반환하는 간단한 코스 API
+const generateFixedCourse = async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, place_name, address, images[1] AS place_image
+         FROM place_info
+        WHERE id = ANY($1::int[])
+        ORDER BY id;`,
+      [[1, 2, 3]]
+    );
+
+    const course = rows.map((row) => ({
+      place_id: row.id,
+      place_name: row.place_name,
+      place_address: row.address,
+      place_image: row.place_image,
+    }));
+
+    return res.status(200).json({ success: true, course });
+  } catch (err) {
+    console.error('generateFixedCourse error:', err);
+    return res.status(500).json({ success: false, error: '서버 오류' });
+  }
+};
 const saveAICourse = async (req, res) => {
   const {
     user_id,
@@ -182,7 +206,7 @@ const recommendPlaces= async (req, res) =>{
   } = req.body;
 
   const sql = `
-    SELECT id, place_name, description, address, images, rating_avg
+    SELECT id, place_name, description, address, images, price_image, rating_avg
     FROM public.place_info
     WHERE address ILIKE $1
       AND main_category = $2
@@ -274,6 +298,9 @@ JSON 배열 [{ "name": "...", "address": "..." }, ...] 형태로 출력해줘.
 
 
 module.exports = {
-  generateAICourse,  saveAICourse,recommendPlaces,aiPlaceRecommend
-
+  generateAICourse,
+  generateFixedCourse,
+  saveAICourse,
+  recommendPlaces,
+  aiPlaceRecommend,
 };
