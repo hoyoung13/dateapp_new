@@ -381,7 +381,7 @@ class _BoardPageState extends State<BoardPage> {
                     style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white),
+                        color: Colors.black),
                   ),
                 ),
                 const SizedBox(width: 10),

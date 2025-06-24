@@ -172,27 +172,20 @@ class _HomeContentState extends State<HomeContent> {
 
   // ─────────── 배너 이미지 리스트 ───────────
   final List<String> _bannerImages = [
-    'img/banner1.png',
-    'img/banner2.png',
-    'img/banner3.png',
-    'img/banner4.png',
-    'img/banner5.png',
-    'img/banner6.png',
-    'img/banner7.png',
+    'img/main.png',
   ];
   final List<_CategoryItem> _categories = [
     _CategoryItem('맛집', 'assets/icons/food.png', () => const FoodPage()),
     _CategoryItem('카페/술집', 'assets/icons/cafe.png', () => const CafePage()),
     _CategoryItem('장소', 'assets/icons/place.png', () => const WalkPage()),
     _CategoryItem('놀거리', 'assets/icons/play.png', () => const PlayPage()),
-    _CategoryItem('보기', 'assets/icons/look.png', () => const SeePage()),
-    _CategoryItem('보기', 'assets/icons/play.png', () => const SeePage()),
+    _CategoryItem('보기', 'assets/icons/see.png', () => const SeePage()),
     _CategoryItem(
         '코스 제작', 'assets/icons/course.png', () => const CourseCreationPage()),
     _CategoryItem('AI 코스', 'assets/icons/ai.png', () => const ChatScreen()),
     _CategoryItem(
         '사용자 코스', 'assets/icons/user_course.png', () => const AllCoursesPage()),
-    _CategoryItem('사용자 컬렉션', 'assets/icons/user_course.png',
+    _CategoryItem('사용자 컬렉션', 'assets/icons/zzim.png',
         () => const PublicCollectionsPage()),
     _CategoryItem(
         '포인트 상점', 'assets/icons/festival.png', () => const ShopPage()),
@@ -424,7 +417,7 @@ class _HomeContentState extends State<HomeContent> {
                 Navigator.push(context,
                     MaterialPageRoute(builder: (_) => const PlayPage()));
               }),
-              _categoryButton('보기', 'assets/icons/festival.png', () {
+              _categoryButton('보기', 'assets/icons/see.png', () {
                 Navigator.push(context,
                     MaterialPageRoute(builder: (_) => const SeePage()));
               }),
@@ -450,13 +443,13 @@ class _HomeContentState extends State<HomeContent> {
                 Navigator.push(context,
                     MaterialPageRoute(builder: (_) => const AllCoursesPage()));
               }),
-              _categoryButton('사용자 컬렉션', 'assets/icons/user_course.png', () {
+              _categoryButton('사용자 컬렉션', 'assets/icons/zzim.png', () {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
                         builder: (_) => const PublicCollectionsPage()));
               }),
-              _categoryButton('포인트 상점', 'assets/icons/festival.png', () {
+              _categoryButton('포인트 상점', 'assets/icons/shop.png', () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const ShopPage()),
@@ -804,7 +797,7 @@ Widget _bannerImage() {
     height: 150,
     decoration: const BoxDecoration(
       image: DecorationImage(
-        image: AssetImage('img/banner1.png'),
+        image: AssetImage('img/main.png'),
         fit: BoxFit.cover,
       ),
     ),

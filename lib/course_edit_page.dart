@@ -364,7 +364,7 @@ class _CourseEditPageState extends State<CourseEditPage> {
                       height: 48,
                       margin: const EdgeInsets.only(bottom: 8),
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
+                        border: Border.all(color: AppColors.border),
                         borderRadius: BorderRadius.circular(4.0),
                       ),
                       child: InkWell(

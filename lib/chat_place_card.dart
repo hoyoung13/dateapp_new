@@ -1,9 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
+import 'theme_colors.dart';
 import 'constants.dart';
 import 'foodplace.dart';
 
@@ -48,7 +47,7 @@ class ChatPlaceCard extends StatelessWidget {
               width: 200,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
+                border: Border.all(color: AppColors.border),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const SizedBox(

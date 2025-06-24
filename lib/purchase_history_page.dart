@@ -70,7 +70,7 @@ class _PurchaseHistoryPageState extends State<PurchaseHistoryPage> {
                   showDialog(
                     context: context,
                     builder: (_) => AlertDialog(
-                      title: Text(item.itemName),
+                      title: Text(item.itemName, textAlign: TextAlign.center),
                       content: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [

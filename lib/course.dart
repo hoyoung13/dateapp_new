@@ -10,6 +10,8 @@ import 'package:http/http.dart' as http;
 import 'constants.dart';
 import 'course2.dart';
 import 'schedule_item.dart'; // 여기서만 ScheduleItem이 정의됨
+import 'theme_colors.dart';
+import 'theme_colors.dart';
 
 class CourseCreationPage extends StatefulWidget {
   const CourseCreationPage({Key? key}) : super(key: key);
@@ -51,7 +53,6 @@ class _CourseCreationPageState extends State<CourseCreationPage> {
     if (result.containsKey('place_name')) {
       setState(() {
         schedules[idx].placeId = result['id']?.toString();
-
         schedules[idx].placeName = result['place_name'];
         schedules[idx].placeAddress = result['address'];
         schedules[idx].placeImage = result['image'];
@@ -86,7 +87,7 @@ class _CourseCreationPageState extends State<CourseCreationPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("데이트 코스 설정하기"),
-        backgroundColor: Colors.cyan[100],
+        backgroundColor: AppColors.appBar,
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -174,7 +175,7 @@ class _CourseCreationPageState extends State<CourseCreationPage> {
                 ElevatedButton(
                   onPressed: _pickDate,
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.cyan[100]),
+                      backgroundColor: AppColors.accentLight),
                   child: Text(
                     _selectedDate == null
                         ? "날짜 선택"
@@ -210,7 +211,7 @@ class _CourseCreationPageState extends State<CourseCreationPage> {
                       height: 48,
                       margin: const EdgeInsets.only(bottom: 8),
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
+                        border: Border.all(color: AppColors.border),
                         borderRadius: BorderRadius.circular(4.0),
                       ),
                       child: InkWell(
@@ -249,8 +250,8 @@ class _CourseCreationPageState extends State<CourseCreationPage> {
               child: OutlinedButton.icon(
                 onPressed: _addSchedule,
                 style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.cyan),
-                  foregroundColor: Colors.cyan,
+                  side: const BorderSide(color: AppColors.appBar),
+                  foregroundColor: AppColors.appBar,
                 ),
                 icon: const Icon(Icons.add),
                 label: const Text("일정 추가하기"),
@@ -272,8 +273,8 @@ class _CourseCreationPageState extends State<CourseCreationPage> {
                     ),
                   );
                 },
-                style:
-                    ElevatedButton.styleFrom(backgroundColor: Colors.cyan[100]),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.accentLight),
                 child: const Text(
                   "다음 단계로",
                   style: TextStyle(color: Colors.black),
