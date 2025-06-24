@@ -6,6 +6,8 @@ import 'package:time_picker_spinner/time_picker_spinner.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'theme_colors.dart';
+import 'package:provider/provider.dart';
+import 'user_provider.dart';
 
 class PlaceAdditionalInfoPage extends StatefulWidget {
   final Map<String, dynamic> placeData; // 장소 검색 시 전달받은 데이터 (장소명, 주소)
@@ -182,6 +184,8 @@ class _PlaceAdditionalInfoPageState extends State<PlaceAdditionalInfoPage> {
 
   // payload 생성 후 PlaceInPage로 이동 (DB 저장은 PlaceInPage에서 "등록" 버튼으로 수행)
   void _goToPlaceInPage() {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final userId = userProvider.userId;
     Map<String, dynamic> operatingHours = {};
     selectedDays.forEach((day, isOpen) {
       if (isOpen) {
@@ -198,7 +202,7 @@ class _PlaceAdditionalInfoPageState extends State<PlaceAdditionalInfoPage> {
         widget.priceList.isEmpty ? null : widget.priceList;
 
     Map<String, dynamic> payload = {
-      "user_id": 1, // 실제 사용자 id로 대체
+      if (userId != null) "user_id": userId,
       "place_name": widget.placeData['place_name'],
       "description": descriptionController.text,
       "address": widget.placeData['address'],
