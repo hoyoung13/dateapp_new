@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'user_provider.dart';
 import 'constants.dart';
 import 'package:intl/intl.dart';
+import 'theme_colors.dart';
 
 class CouplePage extends StatefulWidget {
   const CouplePage({super.key});
@@ -145,7 +146,7 @@ class _CouplePageState extends State<CouplePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("커플 관리"),
-        backgroundColor: Colors.cyan[100],
+        backgroundColor: AppColors.appBar,
         actions: [
           TextButton(
             onPressed:
@@ -303,9 +304,9 @@ class _CouplePageState extends State<CouplePage> {
       builder: (context, child) {
         return Theme(
           data: ThemeData.light().copyWith(
-            primaryColor: Colors.cyan, // 선택 색상 변경
-            hintColor: Colors.cyan,
-            colorScheme: ColorScheme.light(primary: Colors.cyan),
+            primaryColor: AppColors.appBar, // 선택 색상 변경
+            hintColor: AppColors.appBar,
+            colorScheme: ColorScheme.light(primary: AppColors.appBar),
             buttonTheme: ButtonThemeData(textTheme: ButtonTextTheme.primary),
           ),
           child: child!,

@@ -25,6 +25,7 @@ import 'shop_page.dart';
 import 'foodplace.dart';
 import 'public_collections_page.dart';
 import 'full_ranking_page.dart';
+import 'theme_colors.dart';
 
 class _CategoryItem {
   final String label;
@@ -64,7 +65,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.cyan[100], // 🔹 상단바 색상 설정
+        backgroundColor: AppColors.appBar, // 🔹 상단바 색상 설정
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [

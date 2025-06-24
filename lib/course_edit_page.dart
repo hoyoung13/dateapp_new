@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
-
+import 'theme_colors.dart';
 import 'constants.dart';
 import 'schedule_item.dart';
 import 'user_provider.dart';
@@ -260,7 +260,7 @@ class _CourseEditPageState extends State<CourseEditPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('코스 수정하기'),
-        backgroundColor: Colors.cyan[100],
+        backgroundColor: AppColors.accentLight,
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -331,7 +331,7 @@ class _CourseEditPageState extends State<CourseEditPage> {
                 ElevatedButton(
                   onPressed: _pickDate,
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.cyan[100]),
+                      backgroundColor: AppColors.accentLight),
                   child: Text(
                     _selectedDate == null
                         ? '날짜 선택'
@@ -402,8 +402,8 @@ class _CourseEditPageState extends State<CourseEditPage> {
               child: OutlinedButton.icon(
                 onPressed: _addSchedule,
                 style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.cyan),
-                  foregroundColor: Colors.cyan,
+                  side: const BorderSide(color: AppColors.appBar),
+                  foregroundColor: AppColors.appBar,
                 ),
                 icon: const Icon(Icons.add),
                 label: const Text('일정 추가하기'),
@@ -452,8 +452,8 @@ class _CourseEditPageState extends State<CourseEditPage> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: _updateCourse,
-                style:
-                    ElevatedButton.styleFrom(backgroundColor: Colors.cyan[100]),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.accentLight),
                 child:
                     const Text('코스 수정', style: TextStyle(color: Colors.black)),
               ),

@@ -11,6 +11,7 @@ import 'zzimdetail.dart';
 import 'coursedetail.dart';
 import 'schedule_item.dart';
 import 'dart:io';
+import 'theme_colors.dart';
 
 class ZzimPage extends StatefulWidget {
   const ZzimPage({Key? key}) : super(key: key);
@@ -409,7 +410,7 @@ class _ZzimPageState extends State<ZzimPage> {
                       Row(
                         children: [
                           Radio<bool>(
-                            activeColor: Colors.cyan,
+                            activeColor: AppColors.appBar,
                             value: true,
                             groupValue: isPublic,
                             onChanged: (bool? value) {
@@ -421,7 +422,7 @@ class _ZzimPageState extends State<ZzimPage> {
                           const Text('공개'),
                           const SizedBox(width: 20),
                           Radio<bool>(
-                            activeColor: Colors.cyan,
+                            activeColor: AppColors.appBar,
                             value: false,
                             groupValue: isPublic,
                             onChanged: (bool? value) {
@@ -436,7 +437,7 @@ class _ZzimPageState extends State<ZzimPage> {
                       const SizedBox(height: 16),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.cyan,
+                          backgroundColor: AppColors.appBar,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -692,7 +693,7 @@ class _ZzimPageState extends State<ZzimPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFFC0FDF9),
+        backgroundColor: AppColors.appBar,
         elevation: 0,
         automaticallyImplyLeading: false,
         centerTitle: false,
@@ -729,7 +730,7 @@ class _ZzimPageState extends State<ZzimPage> {
                         border: Border(
                           bottom: BorderSide(
                             color: isPlaceSelected
-                                ? Colors.cyan
+                                ? AppColors.appBar
                                 : Colors.transparent,
                             width: 2.0,
                           ),
@@ -761,7 +762,7 @@ class _ZzimPageState extends State<ZzimPage> {
                         border: Border(
                           bottom: BorderSide(
                             color: !isPlaceSelected
-                                ? Colors.cyan
+                                ? AppColors.appBar
                                 : Colors.transparent,
                             width: 2.0,
                           ),
@@ -789,7 +790,7 @@ class _ZzimPageState extends State<ZzimPage> {
             Container(
               width: double.infinity,
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.cyan),
+                border: Border.all(color: AppColors.appBar),
                 borderRadius: BorderRadius.circular(8.0),
                 color: Colors.white,
               ),

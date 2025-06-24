@@ -5,6 +5,7 @@ import 'user_provider.dart';
 import 'shop_item_detail_page.dart';
 import 'shop_constants.dart';
 import 'image_utils.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ShopPage extends StatefulWidget {
   const ShopPage({Key? key}) : super(key: key);
@@ -93,9 +94,13 @@ class _ShopPageState extends State<ShopPage>
                     if (item.imageUrl.isNotEmpty)
                       SizedBox(
                         height: 100,
-                        child: Image.network(
-                          resolveImageUrl(item.imageUrl),
+                        child: CachedNetworkImage(
+                          imageUrl: resolveImageUrl(item.imageUrl),
                           fit: BoxFit.cover,
+                          placeholder: (context, url) =>
+                              const Center(child: CircularProgressIndicator()),
+                          errorWidget: (context, url, error) =>
+                              const Icon(Icons.error),
                         ),
                       ),
                     const SizedBox(height: 4),

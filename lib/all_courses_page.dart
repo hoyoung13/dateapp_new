@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:provider/provider.dart';
 import 'dart:io';
 import 'coursedetail.dart';
+import 'theme_colors.dart';
 
 class AllCoursesPage extends StatefulWidget {
   const AllCoursesPage({Key? key}) : super(key: key);
@@ -344,7 +345,8 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
                                           '${nickname}님이 ${courseName} 코스를 공유했습니다.',
                                     }),
                                   );
-                                  if (resp.statusCode == 200) {
+                                  if (resp.statusCode == 200 ||
+                                      resp.statusCode == 201) {
                                     Navigator.of(ctx).pop();
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -621,7 +623,7 @@ class _AllCoursesPageState extends State<AllCoursesPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("전체 코스 보기"),
-        backgroundColor: Colors.cyan[100],
+        backgroundColor: AppColors.accentLight,
         foregroundColor: Colors.black,
       ),
       body: SafeArea(

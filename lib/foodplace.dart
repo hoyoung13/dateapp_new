@@ -12,6 +12,7 @@ import 'package:intl/intl.dart';
 import 'review_write_page.dart';
 import 'constants.dart';
 import 'user_provider.dart';
+import 'theme_colors.dart';
 
 const List<String> _reportCategories = [
   '폐업/휴업',
@@ -253,7 +254,8 @@ class _PlaceInPageUIOnlyState extends State<PlaceInPageUIOnly>
                                           '${nickname}님이 $placeName 장소를 공유했습니다.',
                                     }),
                                   );
-                                  if (resp.statusCode == 200) {
+                                  if (resp.statusCode == 200 ||
+                                      resp.statusCode == 201) {
                                     Navigator.of(ctx).pop();
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -712,7 +714,7 @@ class _PlaceInPageUIOnlyState extends State<PlaceInPageUIOnly>
       child: Scaffold(
         // ① AppBar를 사용해서 상태바 자동 처리
         appBar: AppBar(
-          backgroundColor: const Color(0xFFB9FDF9),
+          backgroundColor: AppColors.appBar,
           centerTitle: true, // 제목 중앙 정렬
           title: Text(
             placeName,
@@ -849,7 +851,7 @@ class _PlaceInPageUIOnlyState extends State<PlaceInPageUIOnly>
 
             // ③ TabBar
             Container(
-              color: Colors.cyan[50],
+              color: AppColors.accentLight,
               child: TabBar(
                 controller: _tabController,
                 labelColor: Colors.black,

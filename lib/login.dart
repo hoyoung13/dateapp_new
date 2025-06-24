@@ -222,7 +222,7 @@ class _LoginPageState extends State<LoginPage> {
                 height: 100,
                 child: Center(
                   child: Text(
-                    "DATE IT",
+                    "PLACE IT",
                     style: TextStyle(
                       fontSize: 24, fontWeight: FontWeight.bold, // 🔹 Bold 적용
                       fontStyle: FontStyle.italic,

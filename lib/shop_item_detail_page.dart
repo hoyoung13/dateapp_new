@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'user_provider.dart';
 import 'shop_service.dart';
 import 'image_utils.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ShopItemDetailPage extends StatefulWidget {
   final ShopItem item;
@@ -42,9 +43,12 @@ class _ShopItemDetailPageState extends State<ShopItemDetailPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             if (widget.item.imageUrl.isNotEmpty)
-              Image.network(
-                resolveImageUrl(widget.item.imageUrl),
+              CachedNetworkImage(
+                imageUrl: resolveImageUrl(widget.item.imageUrl),
                 height: 120,
+                placeholder: (context, url) =>
+                    const CircularProgressIndicator(),
+                errorWidget: (context, url, error) => const Icon(Icons.error),
               ),
             const SizedBox(height: 16),
             Text('${widget.item.pricePoints} 포인트',

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'shop_service.dart';
 import 'user_provider.dart';
 import 'image_utils.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class PurchaseHistoryPage extends StatefulWidget {
   const PurchaseHistoryPage({Key? key}) : super(key: key);
@@ -55,7 +56,13 @@ class _PurchaseHistoryPageState extends State<PurchaseHistoryPage> {
               final item = items[index];
               return ListTile(
                 leading: item.imageUrl.isNotEmpty
-                    ? Image.network(resolveImageUrl(item.imageUrl))
+                    ? CachedNetworkImage(
+                        imageUrl: resolveImageUrl(item.imageUrl),
+                        placeholder: (context, url) =>
+                            const CircularProgressIndicator(),
+                        errorWidget: (context, url, error) =>
+                            const Icon(Icons.error),
+                      )
                     : null,
                 title: Text(item.itemName),
                 subtitle: Text(_formatDate(item.purchasedAt)),
@@ -67,9 +74,14 @@ class _PurchaseHistoryPageState extends State<PurchaseHistoryPage> {
                       content: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Image.network(
-                            'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${item.barcode}',
+                          CachedNetworkImage(
+                            imageUrl:
+                                'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${item.barcode}',
                             height: 150,
+                            placeholder: (context, url) =>
+                                const CircularProgressIndicator(),
+                            errorWidget: (context, url, error) =>
+                                const Icon(Icons.error),
                           ),
                           const SizedBox(height: 10),
                           const Text('바코드를 제시하세요'),

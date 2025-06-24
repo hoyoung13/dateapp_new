@@ -9,6 +9,7 @@ import 'constants.dart';
 import 'package:provider/provider.dart';
 import 'user_provider.dart';
 import 'post.dart'; // ✅ 게시글 상세 페이지 import 추가
+import 'theme_colors.dart';
 
 // ✅ 시간 포맷 함수
 String formatTime(String timestamp) {
@@ -195,7 +196,7 @@ class _BoardPageState extends State<BoardPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.cyan[100],
+        backgroundColor: AppColors.appBar,
         title: const Text('게시판'),
         actions: [
           IconButton(
@@ -219,7 +220,7 @@ class _BoardPageState extends State<BoardPage> {
         children: [
           // ✅ 게시판 탭
           Container(
-            color: Colors.cyan[50],
+            color: AppColors.accentLight,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: List.generate(
@@ -372,7 +373,7 @@ class _BoardPageState extends State<BoardPage> {
                   padding:
                       const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
                   decoration: BoxDecoration(
-                    color: Colors.cyan[200],
+                    color: AppColors.accentLight,
                     borderRadius: BorderRadius.circular(15),
                   ),
                   child: Text(

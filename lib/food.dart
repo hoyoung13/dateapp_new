@@ -9,9 +9,11 @@ import 'constants.dart';
 import 'package:provider/provider.dart';
 import 'constants.dart';
 import 'user_provider.dart';
+import 'theme_colors.dart';
 
 /// FavoriteIcon 위젯: 하트 아이콘을 토글하는 상태
 import 'package:flutter/material.dart';
+import 'theme_colors.dart';
 
 /// 즐겨찾기(하트) 버튼을 누르면 바텀시트가 열리는 위젯
 class FavoriteIcon extends StatelessWidget {
@@ -120,8 +122,8 @@ class _CollectionSelectSheetState extends State<CollectionSelectSheet> {
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: OutlinedButton(
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.cyan,
-                  side: const BorderSide(color: Colors.cyan),
+                  foregroundColor: AppColors.appBar,
+                  side: const BorderSide(color: AppColors.appBar),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -160,7 +162,7 @@ class _CollectionSelectSheetState extends State<CollectionSelectSheet> {
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.cyan,
+                  backgroundColor: AppColors.appBar,
                   minimumSize: const Size.fromHeight(48),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -223,7 +225,7 @@ class _CollectionSelectSheetState extends State<CollectionSelectSheet> {
                   style: const TextStyle(fontSize: 14, color: Colors.black)),
             ),
             if (selectedCollection == collId)
-              const Icon(Icons.check, color: Colors.cyan),
+              const Icon(Icons.check, color: AppColors.appBar),
           ],
         ),
       ),
@@ -265,7 +267,7 @@ class FoodPage extends StatefulWidget {
 }
 
 class _FoodPageState extends State<FoodPage> {
-  String selectedMainCategory = '먹기';
+  String selectedMainCategory = '맛집';
   String? selectedCity;
   String? selectedDistrict;
   String? selectedNeighborhood;
@@ -288,7 +290,7 @@ class _FoodPageState extends State<FoodPage> {
     '해산물',
     '길거리',
     '샐러드',
-    '빵'
+    '피자/버거'
   ];
   List<String> selectedWithWho = [];
   final List<String> withWhoOptions = [
@@ -415,7 +417,7 @@ class _FoodPageState extends State<FoodPage> {
                         return ChoiceChip(
                           label: Text(o),
                           selected: sel,
-                          selectedColor: Colors.cyan.shade200,
+                          selectedColor: AppColors.accentLight,
                           onSelected: (_) {
                             setModalState(() {
                               if (sel)
@@ -440,7 +442,7 @@ class _FoodPageState extends State<FoodPage> {
                         return ChoiceChip(
                           label: Text(o),
                           selected: sel,
-                          selectedColor: Colors.cyan.shade200,
+                          selectedColor: AppColors.accentLight,
                           onSelected: (_) {
                             setModalState(() {
                               if (sel)
@@ -465,7 +467,7 @@ class _FoodPageState extends State<FoodPage> {
                         return ChoiceChip(
                           label: Text(o),
                           selected: sel,
-                          selectedColor: Colors.cyan.shade200,
+                          selectedColor: AppColors.accentLight,
                           onSelected: (_) {
                             setModalState(() {
                               if (sel)
@@ -520,7 +522,7 @@ class _FoodPageState extends State<FoodPage> {
         var filtered = raw
             .where((place) {
               final p = place as Map<String, dynamic>;
-              if (p['main_category'] != '먹기') return false;
+              if (p['main_category'] != '맛집') return false;
               final addr = (p['address'] ?? '') as String;
               if (selectedCity != null && !addr.contains(selectedCity!))
                 return false;
@@ -615,7 +617,7 @@ class _FoodPageState extends State<FoodPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.cyan[100],
+        backgroundColor: AppColors.accentLight,
         title: const Text('맛집 추천'),
         actions: [
           IconButton(

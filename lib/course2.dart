@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'course3.dart'; // 3단계 페이지 import
 import 'schedule_item.dart'; // schedule_item.dart에 정의된 ScheduleItem 사용
+import 'theme_colors.dart';
 
 class CourseCreationStep2Page extends StatefulWidget {
   final String courseName;
@@ -61,7 +62,7 @@ class _CourseCreationStep2PageState extends State<CourseCreationStep2Page> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("데이트 코스 설정하기 (2단계)"),
-        backgroundColor: Colors.cyan[100],
+        backgroundColor: AppColors.accentLight,
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -114,8 +115,8 @@ class _CourseCreationStep2PageState extends State<CourseCreationStep2Page> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                style:
-                    ElevatedButton.styleFrom(backgroundColor: Colors.cyan[100]),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.accentLight),
                 onPressed: () {
                   final selectedWithWho = <String>[];
                   for (int i = 0; i < withWhoOptions.length; i++) {

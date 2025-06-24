@@ -47,6 +47,7 @@ import 'admin_edit_place_page.dart';
 import 'admin_post_reports_page.dart';
 import 'admin_shop_page.dart';
 import 'public_collections_page.dart';
+import 'theme_colors.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -83,7 +84,15 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Date App',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(scaffoldBackgroundColor: Colors.grey.shade100),
+      theme: ThemeData(
+        scaffoldBackgroundColor: Colors.grey.shade100,
+        appBarTheme: const AppBarTheme(backgroundColor: AppColors.appBar),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.accentLight,
+          ),
+        ),
+      ),
       initialRoute: '/login',
       routes: {
         '/login': (context) => const LoginPage(),

@@ -8,6 +8,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/intl.dart';
 import 'constants.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
+import 'theme_colors.dart';
 
 class PlaceInPage extends StatefulWidget {
   final Map<String, dynamic> payload; // 등록된 place 데이터
@@ -319,7 +320,7 @@ class _PlaceInPageState extends State<PlaceInPage>
   Widget build(BuildContext context) {
     // 상태표시줄 색상 설정
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: Color(0xFFB9FDF9),
+      statusBarColor: AppColors.appBar,
       statusBarIconBrightness: Brightness.dark,
     ));
 
@@ -347,11 +348,11 @@ class _PlaceInPageState extends State<PlaceInPage>
             // 상태표시줄 높이만큼 빈 컨테이너
             Container(
               height: MediaQuery.of(context).padding.top,
-              color: const Color(0xFFB9FDF9),
+              color: AppColors.appBar,
             ),
             // 실제 상단바 영역
             Container(
-              color: const Color(0xFFB9FDF9),
+              color: AppColors.appBar,
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -391,7 +392,7 @@ class _PlaceInPageState extends State<PlaceInPage>
                 children: [
                   _buildTopImage(),
                   Container(
-                    color: Colors.cyan[50],
+                    color: AppColors.accentLight,
                     child: TabBar(
                       controller: _tabController,
                       labelColor: Colors.black,

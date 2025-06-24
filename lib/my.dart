@@ -9,6 +9,7 @@ import 'fri.dart';
 import 'inquiry_page.dart';
 import 'point_history_page.dart';
 import 'purchase_history_page.dart';
+import 'theme_colors.dart';
 
 class MyPage extends StatefulWidget {
   const MyPage({super.key});
@@ -49,7 +50,8 @@ class _MyPageState extends State<MyPage> {
         children: [
           // ✅ 상단 Cyan 배경 적용
           Container(
-            color: Colors.cyan[100],
+            color: AppColors.accentLight,
+
             padding: const EdgeInsets.only(top: 50, bottom: 20), // 상단 간격 추가
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

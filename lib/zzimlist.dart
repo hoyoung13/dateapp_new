@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'constants.dart';
 import 'selectplace.dart';
 import 'allplace.dart';
+import 'theme_colors.dart';
 
 class ZzimListDialog extends StatefulWidget {
   final int userId;
@@ -57,7 +58,7 @@ class _ZzimListDialogState extends State<ZzimListDialog> {
             Container(
               height: 50,
               decoration: BoxDecoration(
-                color: Colors.cyan[100],
+                color: AppColors.accentLight,
                 borderRadius:
                     const BorderRadius.vertical(top: Radius.circular(8)),
               ),
@@ -95,7 +96,7 @@ class _ZzimListDialogState extends State<ZzimListDialog> {
                 icon: const Icon(Icons.place_outlined),
                 label: const Text('장소 보러가기'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.cyan[100],
+                  backgroundColor: AppColors.accentLight,
                   foregroundColor: Colors.black,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8)),

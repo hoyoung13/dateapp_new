@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'user_provider.dart';
 import 'constants.dart';
 import 'auth_helper.dart';
+import 'theme_colors.dart';
 
 // ✅ 시간 포맷 함수
 String formatTime(String timestamp) {
@@ -253,7 +254,7 @@ class _PostPageState extends State<PostPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("게시글 보기"),
-        backgroundColor: Colors.cyan[100],
+        backgroundColor: AppColors.appBar,
         actions: [
           if (isAdmin && widget.reportId != null)
             Row(

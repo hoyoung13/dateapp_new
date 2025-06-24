@@ -8,6 +8,7 @@ import 'package:geolocator/geolocator.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart'; // 천단위 구분자 포맷팅용
 import 'schedule_item.dart';
+import 'theme_colors.dart';
 
 /// Naver 지오코딩 API로부터 좌표(NLatLng)를 받아오는 함수
 Future<NLatLng?> getCoordinateFromAddress(String address) async {
@@ -279,7 +280,7 @@ class _MapPageState extends State<MapPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("길찾기"),
-        backgroundColor: Colors.cyan[100],
+        backgroundColor: AppColors.appBar,
         elevation: 0,
       ),
       body: GestureDetector(
@@ -545,7 +546,7 @@ class _MapPageState extends State<MapPage> {
         });
       },
       style: ElevatedButton.styleFrom(
-        backgroundColor: isSelected ? Colors.cyan : Colors.grey[300],
+        backgroundColor: isSelected ? AppColors.appBar : Colors.grey[300],
         foregroundColor: isSelected ? Colors.white : Colors.black,
       ),
       child: Text(label),

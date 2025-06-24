@@ -17,6 +17,7 @@ import 'chat_course_card.dart';
 import 'chat_collection_card.dart';
 import 'chat_place_card.dart';
 import 'package:intl/intl.dart';
+import 'theme_colors.dart';
 
 class ChatPage extends StatefulWidget {
   final int roomId;
@@ -421,7 +422,7 @@ class _ChatPageState extends State<ChatPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.peerName),
-        backgroundColor: Colors.cyan[100],
+        backgroundColor: AppColors.accentLight,
         iconTheme: const IconThemeData(color: Colors.black),
         foregroundColor: Colors.black,
       ),
@@ -462,7 +463,7 @@ class _ChatPageState extends State<ChatPage> {
                     decoration: isTextMsg
                         ? BoxDecoration(
                             color: isMine
-                                ? Colors.cyan[100]
+                                ? AppColors.accentLight
                                 : Colors.grey.shade200,
                             borderRadius: BorderRadius.circular(12),
                           )
@@ -562,7 +563,7 @@ class _ChatPageState extends State<ChatPage> {
                     ),
                   ),
                   Material(
-                    color: Colors.cyan[100],
+                    color: AppColors.accentLight,
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.only(
                         topRight: Radius.circular(8),

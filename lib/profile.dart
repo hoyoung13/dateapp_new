@@ -6,6 +6,8 @@ import 'user_provider.dart';
 import 'constants.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:intl/intl.dart';
+import 'theme_colors.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -21,6 +23,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final TextEditingController _nameController = TextEditingController();
   String _selectedGender = "남성"; // 기본값 설정
   File? _profileImage; // ✅ 선택한 프로필 이미지
+  String _formatDate(String dateStr) {
+    try {
+      final dt = DateTime.parse(dateStr);
+      return DateFormat('yyyy-MM-dd').format(dt);
+    } catch (_) {
+      return dateStr;
+    }
+  }
 
   @override
   void initState() {
@@ -35,7 +45,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
       setState(() {
         _nicknameController.text = userProvider.nickname ?? "";
-        _dobController.text = userProvider.birthDate ?? "";
+        _dobController.text = _formatDate(userProvider.birthDate ?? "");
         _emailController.text = userProvider.email ?? "";
         _nameController.text = userProvider.name ?? "";
         _selectedGender = userProvider.gender ?? "남성";
@@ -44,10 +54,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
 
     _nicknameController.text = userProvider.nickname ?? "";
-    _dobController.text = userProvider.birthDate ?? "";
+    _dobController.text = _formatDate(userProvider.birthDate ?? "");
     _emailController.text = userProvider.email ?? "";
     _nameController.text = userProvider.name ?? "";
-    _selectedGender = userProvider.gender ?? "남성"; // 기본값 설정
+    _selectedGender = userProvider.gender ?? "남성"; 
 
     if (userProvider.profileImagePath != null &&
         userProvider.profileImagePath!.isNotEmpty) {
@@ -196,7 +206,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 child: ElevatedButton(
                   onPressed: _saveProfile,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.cyan,
+                    backgroundColor: AppColors.appBar,
                     padding: const EdgeInsets.symmetric(vertical: 15),
                   ),
                   child: const Text("정보 저장", style: TextStyle(fontSize: 16)),

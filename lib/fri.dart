@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'constants.dart';
 import 'user_provider.dart';
 import 'chat.dart';
+import 'theme_colors.dart';
 
 class FriPage extends StatefulWidget {
   const FriPage({Key? key}) : super(key: key);
@@ -70,7 +71,7 @@ class _FriPageState extends State<FriPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.cyan[100],
+        backgroundColor: AppColors.accentLight,
         title: const Text('친구 관리', style: TextStyle(color: Colors.black)),
         iconTheme: const IconThemeData(color: Colors.black),
         actions: [

@@ -12,6 +12,7 @@ import 'foodplace.dart';
 import 'package:provider/provider.dart';
 import 'user_provider.dart';
 import 'course_edit_page.dart';
+import 'theme_colors.dart';
 
 class CourseDetailPage extends StatefulWidget {
   final int courseId;
@@ -330,7 +331,7 @@ class _CourseDetailPageState extends State<CourseDetailPage>
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.courseName),
-        backgroundColor: Colors.cyan[100],
+        backgroundColor: AppColors.appBar,
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -401,7 +402,7 @@ class _CourseDetailPageState extends State<CourseDetailPage>
                 },
                 child: const Text("길찾기"),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.cyan, // 버튼 색상을 cyan으로 설정
+                  backgroundColor: AppColors.appBar, // 버튼 색상을 cyan으로 설정
                   minimumSize: const Size.fromHeight(50),
                 ),
               ),
@@ -433,7 +434,7 @@ class _CourseDetailPageState extends State<CourseDetailPage>
                   },
                   child: const Text('수정하기'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.cyan[100],
+                    backgroundColor: AppColors.accentLight,
                     foregroundColor: Colors.black,
                     minimumSize: const Size.fromHeight(50),
                   ),

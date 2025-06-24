@@ -5,6 +5,8 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 import 'category.dart'; // mainCategories, subCategories 를 제공
 import 'dart:io';
+import 'theme_colors.dart';
+
 import 'constants.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
@@ -102,7 +104,7 @@ class _AICoursePageState extends State<AICoursePage> {
                         width: 70,
                         height: 70,
                         decoration: BoxDecoration(
-                          color: isSel ? Colors.cyan : Colors.grey[200],
+                          color: isSel ? AppColors.appBar : Colors.grey[200],
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Column(
@@ -231,7 +233,7 @@ class _AICoursePageState extends State<AICoursePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('AI 추천 코스 제작'),
-        backgroundColor: Colors.cyan[100],
+        backgroundColor: AppColors.accentLight,
         iconTheme: const IconThemeData(color: Colors.black),
         foregroundColor: Colors.black,
       ),
@@ -375,13 +377,13 @@ class _AICoursePageState extends State<AICoursePage> {
                     alignment: Alignment.centerLeft,
                     child: OutlinedButton.icon(
                       onPressed: _addSchedule,
-                      icon: const Icon(Icons.add, color: Colors.cyan),
+                      icon: const Icon(Icons.add, color: AppColors.appBar),
                       label: const Text(
                         "일정 추가하기",
-                        style: TextStyle(color: Colors.cyan),
+                        style: TextStyle(color: AppColors.appBar),
                       ),
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.cyan),
+                        side: const BorderSide(color: AppColors.appBar),
                       ),
                     ),
                   ),
