@@ -522,7 +522,8 @@ class _FoodPageState extends State<FoodPage> {
         var filtered = raw
             .where((place) {
               final p = place as Map<String, dynamic>;
-              if (p['main_category'] != '맛집') return false;
+              if (p['main_category'] != '맛집' && p['main_category'] != '먹기')
+                return false;
               final addr = (p['address'] ?? '') as String;
               if (selectedCity != null && !addr.contains(selectedCity!))
                 return false;

@@ -6,6 +6,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:io';
 import 'constants.dart';
 import 'courseplace.dart';
+import 'theme_colors.dart';
 
 class AllplacePage extends StatefulWidget {
   const AllplacePage({super.key});
@@ -179,7 +180,7 @@ class _AllplacePageState extends State<AllplacePage> {
                         return ChoiceChip(
                           label: Text(o),
                           selected: sel,
-                          selectedColor: Colors.cyan.shade200,
+                          selectedColor: AppColors.accentLight,
                           onSelected: (_) {
                             setModalState(() {
                               if (sel)
@@ -202,7 +203,7 @@ class _AllplacePageState extends State<AllplacePage> {
                         return ChoiceChip(
                           label: Text(o),
                           selected: sel,
-                          selectedColor: Colors.cyan.shade200,
+                          selectedColor: AppColors.accentLight,
                           onSelected: (_) {
                             setModalState(() {
                               if (sel)
@@ -225,7 +226,7 @@ class _AllplacePageState extends State<AllplacePage> {
                         return ChoiceChip(
                           label: Text(o),
                           selected: sel,
-                          selectedColor: Colors.cyan.shade200,
+                          selectedColor: AppColors.accentLight,
                           onSelected: (_) {
                             setModalState(() {
                               if (sel)
@@ -286,8 +287,13 @@ class _AllplacePageState extends State<AllplacePage> {
               final p = place as Map<String, dynamic>;
 
               // 1) 카테고리 체크
-              if (p['main_category'] != selectedMainCategory) return false;
-
+              if (selectedMainCategory == '맛집' ||
+                  selectedMainCategory == '먹기') {
+                if (p['main_category'] != '맛집' && p['main_category'] != '먹기')
+                  return false;
+              } else {
+                if (p['main_category'] != selectedMainCategory) return false;
+              }
               // 2) city 키가 없다면 p['address'] 문자열로 대체
               final addr = (p['address'] ?? '') as String;
               if (selectedCity != null && !addr.contains(selectedCity!))
@@ -374,7 +380,7 @@ class _AllplacePageState extends State<AllplacePage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.cyan[100],
+        backgroundColor: AppColors.accentLight,
         title: const Text('코스 제작'),
         actions: [
           IconButton(
