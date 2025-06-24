@@ -206,11 +206,12 @@ const kakaoLogin = async (req, res) => {
             return res.status(200).json({ message: "기존 사용자 로그인", user: existingUserResult.rows[0] });
         } else {
             console.log("✅ 신규 카카오 유저 등록:", email || "이메일 없음");
-            
+            const hashedPassword = await bcrypt.hash(kakao_id.toString(), 10);
+
             const insertUserQuery = `
-                INSERT INTO users (email, nickname, kakao_id) 
-                VALUES ($1, $2, $3) RETURNING *`;
-            const newUser = await pool.query(insertUserQuery, [email || null, nickname, kakao_id]);
+                INSERT INTO users (email, nickname, password, kakao_id)
+                VALUES ($1, $2, $3, $4) RETURNING *`;
+            const newUser = await pool.query(insertUserQuery, [email || null, nickname, hashedPassword, kakao_id]);
 
             return res.status(201).json({ message: "새 사용자 등록 완료", user: newUser.rows[0] });
         }
