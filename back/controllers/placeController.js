@@ -24,6 +24,8 @@ const createPlace = async (req, res) => {
       images,
       operating_hours,
       price_info,
+      price_image,
+
       with_who,
       purpose,
       mood
@@ -70,12 +72,12 @@ const createPlace = async (req, res) => {
     const query = `
        INSERT INTO place_info
         (user_id, place_name, description, address, phone,
-         main_category, sub_category, hashtags, images, operating_hours, price_info, with_who,
+         main_category, sub_category, hashtags, images, operating_hours, price_info, price_image, with_who,
       purpose,
       mood,
       is_approved)
       VALUES
-        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
       RETURNING *;
     `;
 
@@ -91,11 +93,12 @@ const createPlace = async (req, res) => {
       images,              // $9  (JS 배열)
      
       operatingHoursJson,  // $10 (JSON 문자열 or null)
-      priceInfoJson,
-      with_who,
-      purpose,
-      mood,
-      isApproved     // $11 (JSON 문자열 or null)
+      priceInfoJson,       // $11
+      price_image,         // $12
+      with_who,            // $13
+      purpose,             // $14
+      mood,                // $15
+      isApproved   // $11 (JSON 문자열 or null)
     ];
 
     console.log("▶️ [SERVER] INSERT values =", JSON.stringify(values, null, 2));
@@ -235,6 +238,8 @@ const updatePlace = async (req, res) => {
     images,
     operating_hours,
     price_info,
+    price_image,
+
     with_who,
     purpose,
     mood
@@ -262,6 +267,8 @@ const updatePlace = async (req, res) => {
   if (sub_category !== undefined) add('sub_category', sub_category);
   if (hashtags !== undefined) add('hashtags', hashtags);
   if (images !== undefined) add('images', images);
+  if (price_image !== undefined) add('price_image', price_image);
+
   if (operating_hours !== undefined) add('operating_hours', opJson);
   if (price_info !== undefined) add('price_info', priceJson);
   if (with_who !== undefined) add('with_who', with_who);
@@ -350,6 +357,8 @@ const getWeeklyRanking = async (req, res) => {
         p.id,
         p.place_name,
         p.images,
+                p.price_image,
+
         COALESCE(w.weekly_views, 0) AS weekly_views,
         p.main_category,
         p.address
@@ -372,6 +381,8 @@ const getWeeklyRanking = async (req, res) => {
         p.id,
         p.place_name,
         p.images,
+                p.price_image,
+
         COALESCE(w.weekly_views, 0) AS weekly_views,
         p.main_category,
         p.address

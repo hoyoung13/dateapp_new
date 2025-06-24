@@ -153,9 +153,10 @@ const createCollection = async (req, res) => {
           p.id, 
           p.place_name, 
           p.address,
-          p.main_category, 
-          p.images, 
-          p.rating, 
+           p.main_category,
+          p.images,
+          p.price_image,
+          p.rating,
           p.hashtags
         FROM collection_places cp
         JOIN place_info p ON cp.place_id = p.id

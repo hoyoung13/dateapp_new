@@ -2,6 +2,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'placeadd.dart';
+import 'theme_colors.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 class PriceInfoPage extends StatefulWidget {
   final Map<String, dynamic>
@@ -18,6 +21,7 @@ class _PriceInfoPageState extends State<PriceInfoPage> {
   List<Map<String, String>> _priceList = [];
   TextEditingController itemController = TextEditingController();
   TextEditingController priceController = TextEditingController();
+  File? _priceImage;
 
   void _togglePriceInputs(bool show) {
     setState(() {
@@ -44,11 +48,21 @@ class _PriceInfoPageState extends State<PriceInfoPage> {
     });
   }
 
+  Future<void> _pickPriceImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _priceImage = File(pickedFile.path);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFFB9FDF9),
+        backgroundColor: AppColors.appBar,
         title: Text("'${widget.placeData['place_name']}'의 가격정보"),
         centerTitle: true,
         leading: IconButton(
@@ -71,8 +85,9 @@ class _PriceInfoPageState extends State<PriceInfoPage> {
                 ElevatedButton(
                   onPressed: () => _togglePriceInputs(true),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        _showPriceInputs ? Colors.cyan[100] : Colors.grey[300],
+                    backgroundColor: _showPriceInputs
+                        ? AppColors.accentLight
+                        : Colors.grey[300],
                   ),
                   child: const Text("예, 가격 정보를 등록합니다."),
                 ),
@@ -80,8 +95,9 @@ class _PriceInfoPageState extends State<PriceInfoPage> {
                 ElevatedButton(
                   onPressed: () => _togglePriceInputs(false),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        !_showPriceInputs ? Colors.cyan[50] : Colors.grey[300],
+                    backgroundColor: !_showPriceInputs
+                        ? AppColors.accentLight
+                        : Colors.grey[300],
                   ),
                   child: const Text("아니요, 가격 정보가 없습니다."),
                 ),
@@ -95,20 +111,28 @@ class _PriceInfoPageState extends State<PriceInfoPage> {
               ),
               const SizedBox(height: 10),
               GestureDetector(
-                onTap: () {
-                  // 이미지 업로드 기능 추가 가능
-                },
-                child: Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Center(
-                    child: Icon(Icons.add, size: 40, color: Colors.black),
-                  ),
-                ),
+                onTap: _pickPriceImage,
+                child: _priceImage != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.file(
+                          _priceImage!,
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                    : Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Center(
+                          child: Icon(Icons.add, size: 40, color: Colors.black),
+                        ),
+                      ),
               ),
               const SizedBox(height: 20),
               const Text(
