@@ -110,12 +110,12 @@ exports.updatePost = async (req, res) => {
     try {
       const query = `
         UPDATE posts
-        SET title = ?, content = ?, updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?;
+        SET title = $1, content = $2, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $3;
       `;
-      const [result] = await db.query(query, [title, content, postId]);
-  
-      if (result.affectedRows === 0) {
+      const result = await db.query(query, [title, content, postId]);
+
+      if (result.rowCount === 0) {
         return res.status(404).json({ error: "게시글을 찾을 수 없음" });
       }
   

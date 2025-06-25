@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:provider/provider.dart';
 import 'user_provider.dart';
 import 'constants.dart';
+import 'theme_colors.dart';
 
 class WritePostPage extends StatefulWidget {
   const WritePostPage({super.key});
@@ -70,7 +71,7 @@ class _WritePostPageState extends State<WritePostPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("게시글 작성"),
-        backgroundColor: Colors.cyan[100],
+        backgroundColor: AppColors.accentLight,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -115,7 +116,7 @@ class _WritePostPageState extends State<WritePostPage> {
             ElevatedButton(
               onPressed: _submitPost,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.cyan[200],
+                backgroundColor: AppColors.accentLight,
               ),
               child: const Text("게시글 작성"),
             ),

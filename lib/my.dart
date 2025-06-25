@@ -252,7 +252,7 @@ class _MyPageState extends State<MyPage> {
           ? Row(
               mainAxisSize: MainAxisSize.min,
               children: const [
-                Text("NEW!",
+                Text(".",
                     style: TextStyle(
                         color: Colors.red, fontWeight: FontWeight.bold)),
                 Icon(Icons.chevron_right),

@@ -172,7 +172,7 @@ class _PublicCollectionsPageState extends State<PublicCollectionsPage> {
                           _myCollectionIds.contains(coll['id'])
                               ? Icons.favorite
                               : Icons.favorite_border,
-                          color: Colors.white,
+                          color: Colors.black,
                         ),
                         onPressed: _myCollectionIds.contains(coll['id'])
                             ? null
@@ -188,7 +188,7 @@ class _PublicCollectionsPageState extends State<PublicCollectionsPage> {
                   child: Text(
                     coll['collection_name'] ?? '',
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: Colors.black,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       shadows: [Shadow(blurRadius: 2, color: Colors.black)],

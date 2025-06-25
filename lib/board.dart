@@ -74,9 +74,9 @@ class _BoardPageState extends State<BoardPage> {
 
       if (boardType != "모든 게시판") {
         Map<String, int> boardMap = {
-          "질문 게시판": 1,
-          "추천 게시판": 2,
-          "자유 게시판": 3,
+          "자유 게시판": 1,
+          "질문 게시판": 2,
+          "추천 게시판": 3,
         };
 
         int? boardId = boardMap[boardType];

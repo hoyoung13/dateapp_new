@@ -19,10 +19,7 @@
 
     // ✅ 좋아요 싫어요
     router.post("/:postId/reaction", boardController.updateReaction);
-    router.post("/:postId/reaction", (req, res, next) => {
-        console.log("✅ [DEBUG] POST /boards/:postId/reaction 실행됨, postId:", req.params.postId);
-        next();
-    }, boardController.updateReaction);
+    
 
     router.get("/posts/:postId", boardController.getPostDetails);
 

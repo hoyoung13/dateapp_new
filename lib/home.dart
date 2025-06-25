@@ -164,7 +164,7 @@ class _HomeContentState extends State<HomeContent> {
   List<Map<String, dynamic>>? weeklyRanking; // 전체 카테고리 이번주 조회순
   List<Map<String, dynamic>>? foodRanking; // main_category = '먹기'
   List<Map<String, dynamic>>? cafeRanking; // main_category = '카페'
-  List<Map<String, dynamic>>? spotRanking; // main_category = '장소'
+  List<Map<String, dynamic>>? walkRanking; // main_category = '장소'
   List<Map<String, dynamic>>? playRanking; // main_category = '놀거리'
   List<Map<String, dynamic>>? seeRanking; // main_category = '보기'
 
@@ -179,8 +179,8 @@ class _HomeContentState extends State<HomeContent> {
   final List<_CategoryItem> _categories = [
     _CategoryItem('맛집', 'assets/icons/food.png', () => const FoodPage()),
     _CategoryItem('카페/술집', 'assets/icons/cafe.png', () => const CafePage()),
-    _CategoryItem('장소', 'assets/icons/place.png', () => const WalkPage()),
-    _CategoryItem('놀거리', 'assets/icons/play.png', () => const PlayPage()),
+    _CategoryItem('걷기', 'assets/icons/place.png', () => const WalkPage()),
+    _CategoryItem('놀기', 'assets/icons/play.png', () => const PlayPage()),
     _CategoryItem('보기', 'assets/icons/see.png', () => const SeePage()),
     _CategoryItem(
         '코스 제작', 'assets/icons/course.png', () => const CourseCreationPage()),
@@ -200,8 +200,8 @@ class _HomeContentState extends State<HomeContent> {
     _fetchWeeklyRanking();
     _fetchCategoryRanking('맛집'); // 맛집
     _fetchCategoryRanking('카페/술집'); // 카페/술집
-    _fetchCategoryRanking('장소'); // 장소
-    _fetchCategoryRanking('놀거리'); // 놀거리
+    _fetchCategoryRanking('걷기'); // 장소
+    _fetchCategoryRanking('놀기'); // 놀거리
     _fetchCategoryRanking('보기'); // 보기
   }
 
@@ -253,11 +253,11 @@ class _HomeContentState extends State<HomeContent> {
         setter = (v) => setState(() => cafeRanking = v);
         setState(() => cafeRanking = null);
         break;
-      case '장소':
-        setter = (v) => setState(() => spotRanking = v);
-        setState(() => spotRanking = null);
+      case '걷기':
+        setter = (v) => setState(() => walkRanking = v);
+        setState(() => walkRanking = null);
         break;
-      case '놀거리':
+      case '놀기':
         setter = (v) => setState(() => playRanking = v);
         setState(() => playRanking = null);
         break;
@@ -307,7 +307,7 @@ class _HomeContentState extends State<HomeContent> {
             data: weeklyRanking,
             category: null,
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
 
           // ─────────────────── 맛집(먹기) 랭킹 섹션 ───────────────────
           _buildRankingSection(
@@ -315,7 +315,7 @@ class _HomeContentState extends State<HomeContent> {
             data: foodRanking,
             category: '맛집',
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
 
           // ─────────────────── 카페 랭킹 섹션 ───────────────────
           _buildRankingSection(
@@ -323,29 +323,29 @@ class _HomeContentState extends State<HomeContent> {
             data: cafeRanking,
             category: '카페/술집',
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
 
           // ─────────────────── 장소 랭킹 섹션 ───────────────────
           _buildRankingSection(
-            title: _getRankingTitle("데이트 장소 랭킹"),
-            data: spotRanking,
-            category: '장소',
+            title: _getRankingTitle("데이트 산책 랭킹"),
+            data: walkRanking,
+            category: '걷기',
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
 
           // ─────────────────── 놀거리 랭킹 섹션 ───────────────────
           _buildRankingSection(
             title: _getRankingTitle("데이트 놀거리 랭킹"),
             data: playRanking,
-            category: '놀거리',
+            category: '놀기',
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
           _buildRankingSection(
             title: _getRankingTitle("데이트 보기 랭킹"),
             data: seeRanking,
             category: '보기',
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
         ],
       ),
     );

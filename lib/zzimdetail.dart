@@ -7,6 +7,7 @@ import 'foodplace.dart';
 import 'dart:io';
 import 'user_provider.dart';
 import 'package:provider/provider.dart';
+import 'theme_colors.dart';
 
 class CollectionDetailPage extends StatefulWidget {
   final Map<String, dynamic> collection;
@@ -402,7 +403,7 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFFC0FDF9),
+        backgroundColor: AppColors.appBar,
         elevation: 0,
         title: Text(
           collection['collection_name'] ?? '컬렉션 상세',

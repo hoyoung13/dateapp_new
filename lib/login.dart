@@ -309,7 +309,7 @@ class _LoginPageState extends State<LoginPage> {
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF80E9FF),
+                      backgroundColor: const Color.fromARGB(255, 0, 0, 0),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -321,7 +321,7 @@ class _LoginPageState extends State<LoginPage> {
                         fontSize: 24,
                         fontFamily: 'Inter',
                         fontWeight: FontWeight.w400,
-                        color: Colors.black,
+                        color: Colors.white,
                       ),
                     ),
                   ),

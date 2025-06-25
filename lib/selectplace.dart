@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'constants.dart';
+import 'theme_colors.dart';
 
 class SelectplacePage extends StatefulWidget {
   final Map<String, dynamic> collection;
@@ -47,7 +48,7 @@ class _SelectplacePageState extends State<SelectplacePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("장소 선택"),
-        backgroundColor: Colors.cyan[100],
+        backgroundColor: AppColors.accentLight,
         iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: Padding(
