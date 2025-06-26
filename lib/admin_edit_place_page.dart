@@ -8,14 +8,15 @@ import 'package:provider/provider.dart';
 import 'constants.dart';
 import 'user_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:time_picker_spinner/time_picker_spinner.dart';
 
-class AdminEditPlacePage extends StatefulWidget {
+class AdminEditPlaceFormPage extends StatefulWidget {
   final int placeId;
   final int reportId;
   final String? reason;
   final String? category;
 
-  const AdminEditPlacePage({
+  const AdminEditPlaceFormPage({
     Key? key,
     required this.placeId,
     required this.reportId,
@@ -24,10 +25,10 @@ class AdminEditPlacePage extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<AdminEditPlacePage> createState() => _AdminEditPlacePageState();
+  State<AdminEditPlaceFormPage> createState() => _AdminEditPlaceFormPageState();
 }
 
-class _AdminEditPlacePageState extends State<AdminEditPlacePage> {
+class _AdminEditPlaceFormPageState extends State<AdminEditPlaceFormPage> {
   final TextEditingController nameCtrl = TextEditingController();
   final TextEditingController addressCtrl = TextEditingController();
   final TextEditingController phoneCtrl = TextEditingController();
@@ -39,6 +40,51 @@ class _AdminEditPlacePageState extends State<AdminEditPlacePage> {
   final List<String> images = [];
   final List<String> hashtags = [];
   final TextEditingController _hashtagController = TextEditingController();
+  Map<String, bool> selectedDays = {
+    '월': false,
+    '화': false,
+    '수': false,
+    '목': false,
+    '금': false,
+    '토': false,
+    '일': false,
+  };
+  Map<String, int> startHour = {
+    '월': 9,
+    '화': 9,
+    '수': 9,
+    '목': 9,
+    '금': 9,
+    '토': 9,
+    '일': 9,
+  };
+  Map<String, int> startMinute = {
+    '월': 0,
+    '화': 0,
+    '수': 0,
+    '목': 0,
+    '금': 0,
+    '토': 0,
+    '일': 0,
+  };
+  Map<String, int> endHour = {
+    '월': 18,
+    '화': 18,
+    '수': 18,
+    '목': 18,
+    '금': 18,
+    '토': 18,
+    '일': 18,
+  };
+  Map<String, int> endMinute = {
+    '월': 0,
+    '화': 0,
+    '수': 0,
+    '목': 0,
+    '금': 0,
+    '토': 0,
+    '일': 0,
+  };
 
   final ImagePicker _picker = ImagePicker();
 
@@ -105,6 +151,21 @@ class _AdminEditPlacePageState extends State<AdminEditPlacePage> {
           ..clear()
           ..addAll((data['hashtags'] as List<dynamic>? ?? [])
               .map((e) => e.toString()));
+        final op = data['operating_hours'] as Map<String, dynamic>? ?? {};
+        selectedDays.forEach((day, _) {
+          final val = op[day];
+          if (val is Map) {
+            selectedDays[day] = true;
+            final s = (val['start'] ?? '09:00').split(':');
+            final e = (val['end'] ?? '18:00').split(':');
+            startHour[day] = int.tryParse(s[0]) ?? 9;
+            startMinute[day] = int.tryParse(s[1]) ?? 0;
+            endHour[day] = int.tryParse(e[0]) ?? 18;
+            endMinute[day] = int.tryParse(e[1]) ?? 0;
+          } else {
+            selectedDays[day] = false;
+          }
+        });
       });
     }
   }
@@ -125,6 +186,69 @@ class _AdminEditPlacePageState extends State<AdminEditPlacePage> {
     });
   }
 
+  void _toggleDaySelection(String day) {
+    setState(() {
+      selectedDays[day] = !(selectedDays[day] ?? false);
+    });
+  }
+
+  void _showSpinnerTimePicker(BuildContext context, String day, bool isStart) {
+    DateTime tempDate = DateTime(
+      2023,
+      1,
+      1,
+      isStart ? startHour[day]! : endHour[day]!,
+      isStart ? startMinute[day]! : endMinute[day]!,
+    );
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('시간 설정'),
+          content: SizedBox(
+            height: 200,
+            child: TimePickerSpinner(
+              is24HourMode: true,
+              normalTextStyle:
+                  const TextStyle(fontSize: 18, color: Colors.grey),
+              highlightedTextStyle:
+                  const TextStyle(fontSize: 24, color: Colors.black),
+              spacing: 40,
+              itemHeight: 40,
+              isForce2Digits: true,
+              time: tempDate,
+              onTimeChange: (newTime) {
+                tempDate = newTime;
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('취소'),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  if (isStart) {
+                    startHour[day] = tempDate.hour;
+                    startMinute[day] = tempDate.minute;
+                  } else {
+                    endHour[day] = tempDate.hour;
+                    endMinute[day] = tempDate.minute;
+                  }
+                });
+                Navigator.pop(ctx);
+              },
+              child: const Text('확인'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _pickImages() async {
     final picked = await _picker.pickMultiImage();
     if (picked != null) {
@@ -143,6 +267,18 @@ class _AdminEditPlacePageState extends State<AdminEditPlacePage> {
       'user_id': '${_adminId}'
     };
     if (token != null) headers['Authorization'] = 'Bearer $token';
+    Map<String, dynamic> operatingHours = {};
+    selectedDays.forEach((day, isOpen) {
+      if (isOpen) {
+        final start =
+            '${startHour[day]!.toString().padLeft(2, '0')}:${startMinute[day]!.toString().padLeft(2, '0')}';
+        final end =
+            '${endHour[day]!.toString().padLeft(2, '0')}:${endMinute[day]!.toString().padLeft(2, '0')}';
+        operatingHours[day] = {'start': start, 'end': end};
+      } else {
+        operatingHours[day] = '휴무';
+      }
+    });
     await http.patch(uri,
         headers: headers,
         body: jsonEncode({
@@ -152,6 +288,7 @@ class _AdminEditPlacePageState extends State<AdminEditPlacePage> {
           'description': descCtrl.text,
           'price_info':
               priceCtrl.text.isNotEmpty ? jsonDecode(priceCtrl.text) : null,
+          'operating_hours': operatingHours,
           'main_category': selectedMainCategory,
           'sub_category': selectedSubCategory,
           'images': images.isNotEmpty ? images : null,
@@ -284,6 +421,95 @@ class _AdminEditPlacePageState extends State<AdminEditPlacePage> {
                         ))
                     .toList(),
               ),
+            const SizedBox(height: 20),
+            const Text('영업시간', style: TextStyle(fontSize: 14)),
+            const SizedBox(height: 10),
+            Column(
+              children: selectedDays.entries.map((entry) {
+                final day = entry.key;
+                final isSelected = entry.value;
+                return Column(
+                  children: [
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () => _toggleDaySelection(day),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 12),
+                            decoration: BoxDecoration(
+                              color:
+                                  isSelected ? Colors.grey[300] : Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: Colors.black),
+                            ),
+                            child: Text(
+                              day,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: isSelected ? Colors.black : Colors.black,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Center(
+                            child: isSelected
+                                ? Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      GestureDetector(
+                                        onTap: () => _showSpinnerTimePicker(
+                                            context, day, true),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 8, horizontal: 16),
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey[200],
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                          ),
+                                          child: Text(
+                                            '${startHour[day]!.toString().padLeft(2, '0')}:${startMinute[day]!.toString().padLeft(2, '0')}',
+                                            style:
+                                                const TextStyle(fontSize: 14),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 5),
+                                      const Text('~',
+                                          style: TextStyle(fontSize: 16)),
+                                      const SizedBox(width: 5),
+                                      GestureDetector(
+                                        onTap: () => _showSpinnerTimePicker(
+                                            context, day, false),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 8, horizontal: 16),
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey[200],
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                          ),
+                                          child: Text(
+                                            '${endHour[day]!.toString().padLeft(2, '0')}:${endMinute[day]!.toString().padLeft(2, '0')}',
+                                            style:
+                                                const TextStyle(fontSize: 14),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : const Text('휴무'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Divider(),
+                  ],
+                );
+              }).toList(),
+            ),
             const SizedBox(height: 20),
             ElevatedButton(onPressed: _save, child: const Text('저장')),
           ],

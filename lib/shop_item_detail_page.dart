@@ -40,6 +40,7 @@ class _ShopItemDetailPageState extends State<ShopItemDetailPage> {
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             if (widget.item.imageUrl.isNotEmpty)
@@ -51,9 +52,11 @@ class _ShopItemDetailPageState extends State<ShopItemDetailPage> {
                 errorWidget: (context, url, error) => const Icon(Icons.error),
               ),
             const SizedBox(height: 16),
-            Text('${widget.item.pricePoints} 포인트',
-                style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(
+              '${widget.item.pricePoints} 포인트',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 20),
             if (_purchase == null)
               ElevatedButton(
@@ -63,7 +66,10 @@ class _ShopItemDetailPageState extends State<ShopItemDetailPage> {
                     : const Text('구매하기'),
               )
             else
-              const Text('구매 완료!')
+              const Text(
+                '구매 완료!',
+                textAlign: TextAlign.center,
+              )
           ],
         ),
       ),

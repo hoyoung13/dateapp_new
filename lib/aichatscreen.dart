@@ -235,7 +235,6 @@ class _ChatScreenState extends State<ChatScreen> {
       if (resp.statusCode == 201) {
         final data = jsonDecode(resp.body);
         final id = data['course_id'];
-        await _sendAI('코스가 저장되었습니다.');
         if (id != null) {
           _addCourseCard(id as int);
         }

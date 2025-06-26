@@ -144,7 +144,7 @@ class MyApp extends StatelessWidget {
         '/admin/edit-place': (context) {
           final args = ModalRoute.of(context)!.settings.arguments
               as Map<String, dynamic>;
-          return AdminEditPlacePage(
+          return AdminEditPlaceFormPage(
             placeId: args['placeId'] as int,
             reportId: args['reportId'] as int,
             reason: args['reason'] as String?,

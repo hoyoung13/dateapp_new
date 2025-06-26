@@ -843,7 +843,7 @@ class _ZzimPageState extends State<ZzimPage> {
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'HOME'),
           BottomNavigationBarItem(icon: Icon(Icons.forum), label: '커뮤니티'),
           BottomNavigationBarItem(icon: Icon(Icons.favorite), label: '찜 목록'),
-          BottomNavigationBarItem(icon: Icon(Icons.event), label: 'EVENT'),
+          BottomNavigationBarItem(icon: Icon(Icons.message), label: '메시지'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'MY'),
         ],
       ),
@@ -883,8 +883,8 @@ class _ZzimPageState extends State<ZzimPage> {
                   collection['is_public'] == true ? '공개' : '비공개',
                   style: const TextStyle(fontSize: 14, color: Colors.grey),
                 ),
-                onTap: () {
-                  Navigator.of(context).push(
+                onTap: () async {
+                  final deleted = await Navigator.of(context).push(
                     // 애니메이션 없이 이동하려면 _noAnimationRoute를 써도 되고,
                     // 일반적으로는 MaterialPageRoute를 사용합니다.
                     MaterialPageRoute(
@@ -892,6 +892,16 @@ class _ZzimPageState extends State<ZzimPage> {
                           CollectionDetailPage(collection: collection),
                     ),
                   );
+                  if (deleted == true) {
+                    final userProvider =
+                        Provider.of<UserProvider>(context, listen: false);
+                    final id = userProvider.userId;
+                    if (id != null) {
+                      setState(() {
+                        _collectionsFuture = fetchCollections(id);
+                      });
+                    }
+                  }
                 },
               );
             },
