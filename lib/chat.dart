@@ -453,65 +453,86 @@ class _ChatPageState extends State<ChatPage> {
                     msg['course_id'] == null &&
                     msg['collection_id'] == null;
 
-                final messageBubble = Align(
-                  alignment:
-                      isMine ? Alignment.centerRight : Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 4),
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                    decoration: isTextMsg
-                        ? BoxDecoration(
-                            color: isMine
-                                ? AppColors.accentLight
-                                : Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(12),
-                          )
-                        : null,
-                    child: Column(
-                      crossAxisAlignment: isMine
-                          ? CrossAxisAlignment.end
-                          : CrossAxisAlignment.start,
-                      children: [
-                        // 내 메시지가 아니면 보낸 사람 닉네임 표시
-                        if (!isMine)
-                          Text(
-                            msg['sender_nickname'],
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 12),
-                          ),
-
-                        // 본문
-                        if (msg['image_url'] != null)
-                          Image.network(
-                            msg['image_url'].toString().startsWith('http')
-                                ? msg['image_url']
-                                : '$BASE_URL${msg['image_url']}',
-                            width: 200,
-                          )
-                        else if (msg['place_id'] != null)
-                          ChatPlaceCard(
-                            placeId: msg['place_id'],
-                            fallbackText: msg['content'] ?? '',
-                          )
-                        else if (msg['course_id'] != null)
-                          ChatCourseCard(courseId: msg['course_id'])
-                        else if (msg['collection_id'] != null)
-                          ChatCollectionCard(
-                              collectionId: msg['collection_id'],
-                              senderId: msg['sender_id'])
-                        else
-                          Text(msg['content'] ?? ''),
-                        // 보낸 시간
-                        Text(
-                          DateFormat('HH:mm').format(sentAt),
-                          style:
-                              const TextStyle(fontSize: 10, color: Colors.grey),
-                        ),
-                      ],
-                    ),
+                final bubble = Container(
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                  decoration: isTextMsg
+                      ? BoxDecoration(
+                          color: isMine
+                              ? AppColors.accentLight
+                              : Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(12),
+                        )
+                      : null,
+                  child: Column(
+                    crossAxisAlignment: isMine
+                        ? CrossAxisAlignment.end
+                        : CrossAxisAlignment.start,
+                    children: [
+                      if (msg['image_url'] != null)
+                        Image.network(
+                          msg['image_url'].toString().startsWith('http')
+                              ? msg['image_url']
+                              : '$BASE_URL${msg['image_url']}',
+                          width: 200,
+                        )
+                      else if (msg['place_id'] != null)
+                        ChatPlaceCard(
+                          placeId: msg['place_id'],
+                          fallbackText: msg['content'] ?? '',
+                        )
+                      else if (msg['course_id'] != null)
+                        ChatCourseCard(courseId: msg['course_id'])
+                      else if (msg['collection_id'] != null)
+                        ChatCollectionCard(
+                            collectionId: msg['collection_id'],
+                            senderId: msg['sender_id'])
+                      else
+                        Text(msg['content'] ?? ''),
+                      Text(
+                        DateFormat('HH:mm').format(sentAt),
+                        style:
+                            const TextStyle(fontSize: 10, color: Colors.grey),
+                      ),
+                    ],
                   ),
                 );
+                ImageProvider? avatarProvider;
+                final profile = msg['sender_profile_image']?.toString() ?? '';
+                if (profile.isNotEmpty) {
+                  if (profile.startsWith('http')) {
+                    avatarProvider = NetworkImage(profile);
+                  } else if (profile.startsWith('/data/') ||
+                      profile.startsWith('file://')) {
+                    avatarProvider = FileImage(File(profile));
+                  } else {
+                    avatarProvider = NetworkImage('$BASE_URL$profile');
+                  }
+                }
+
+                Widget messageWidget;
+                if (isMine) {
+                  messageWidget = Align(
+                    alignment: Alignment.centerRight,
+                    child: bubble,
+                  );
+                } else {
+                  messageWidget = Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CircleAvatar(
+                        radius: 16,
+                        backgroundImage: avatarProvider,
+                        child: avatarProvider == null
+                            ? const Icon(Icons.person)
+                            : null,
+                      ),
+                      const SizedBox(width: 8),
+                      bubble,
+                    ],
+                  );
+                }
                 if (showDateHeader) {
                   return Column(
                     children: [
@@ -523,11 +544,11 @@ class _ChatPageState extends State<ChatPage> {
                               const TextStyle(fontSize: 12, color: Colors.grey),
                         ),
                       ),
-                      messageBubble,
+                      messageWidget,
                     ],
                   );
                 }
-                return messageBubble;
+                return messageWidget;
               },
             ),
           ),

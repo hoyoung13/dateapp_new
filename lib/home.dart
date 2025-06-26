@@ -79,18 +79,6 @@ class _HomePageState extends State<HomePage> {
                 fontStyle: FontStyle.italic, // Italic
               ),
             ), // 🔹 앱 이름
-            Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.search),
-                  onPressed: () {}, // 🔹 검색 버튼
-                ),
-                IconButton(
-                  icon: const Icon(Icons.menu),
-                  onPressed: () {}, // 🔹 메뉴 버튼
-                ),
-              ],
-            ),
           ],
         ),
       ),
@@ -128,7 +116,7 @@ class _HomePageState extends State<HomePage> {
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'HOME'),
           BottomNavigationBarItem(icon: Icon(Icons.forum), label: '커뮤니티'),
           BottomNavigationBarItem(icon: Icon(Icons.favorite), label: '찜 목록'),
-          BottomNavigationBarItem(icon: Icon(Icons.event), label: 'EVENT'),
+          BottomNavigationBarItem(icon: Icon(Icons.event), label: '메시지'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'MY'),
         ],
       ),

@@ -57,12 +57,20 @@ const getMessages = async (req, res) => {
   const roomId = parseInt(req.params.roomId, 10);
   try {/*m.type,*/
     const { rows } = await pool.query(`
-SELECT m.id, m.sender_id, u.nickname AS sender_nickname, m.content,
-m.course_id, m.place_id, m.image_url, m.collection_id,
+SELECT m.id,
+       m.sender_id,
+       u.nickname AS sender_nickname,
+       u.profile_image AS sender_profile_image,
+       m.content,
+       m.course_id,
+       m.place_id,
+       m.image_url,
+       m.collection_id,
        m.sent_at
-      FROM messages m      JOIN users u ON u.id = m.sender_id
-      WHERE m.room_id = $1
-      ORDER BY m.sent_at
+       FROM messages m
+  JOIN users u ON u.id = m.sender_id
+  WHERE m.room_id = $1
+  ORDER BY m.sent_at
     `, [roomId]);
 
     res.status(200).json({ messages: rows });

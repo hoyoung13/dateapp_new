@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'constants.dart';
 import 'theme_colors.dart';
+import 'dart:io';
 
 class SelectplacePage extends StatefulWidget {
   final Map<String, dynamic> collection;
@@ -98,6 +99,41 @@ class _SelectplacePageState extends State<SelectplacePage> {
             ? List<String>.from(place['hashtags'])
             : [];
 
+    Widget imageWidget;
+    if (imageUrl != null) {
+      if (imageUrl.startsWith('http')) {
+        imageWidget = Image.network(
+          imageUrl,
+          fit: BoxFit.cover,
+          height: 180,
+          width: double.infinity,
+        );
+      } else if (imageUrl.startsWith('/data/') ||
+          imageUrl.startsWith('file://')) {
+        imageWidget = Image.file(
+          File(imageUrl),
+          fit: BoxFit.cover,
+          height: 180,
+          width: double.infinity,
+        );
+      } else {
+        final fullUrl = '$BASE_URL$imageUrl';
+        imageWidget = Image.network(
+          fullUrl,
+          fit: BoxFit.cover,
+          height: 180,
+          width: double.infinity,
+        );
+      }
+    } else {
+      imageWidget = Container(
+        color: Colors.grey.shade300,
+        height: 180,
+        width: double.infinity,
+        child: const Center(child: Text('이미지 없음')),
+      );
+    }
+
     return GestureDetector(
       // _buildPlaceCard 내 onTap 콜백 예시
       onTap: () {
@@ -123,23 +159,10 @@ class _SelectplacePageState extends State<SelectplacePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 이미지 영역
             ClipRRect(
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(10)),
-              child: (imageUrl != null && imageUrl.startsWith("http"))
-                  ? Image.network(
-                      imageUrl,
-                      fit: BoxFit.cover,
-                      height: 180,
-                      width: double.infinity,
-                    )
-                  : Container(
-                      color: Colors.grey.shade300,
-                      height: 180,
-                      width: double.infinity,
-                      child: const Center(child: Text("이미지 없음")),
-                    ),
+              child: imageWidget,
             ),
             const SizedBox(height: 8),
             // 카테고리 (연한 회색)

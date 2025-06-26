@@ -257,7 +257,7 @@ class _PublicCollectionsPageState extends State<PublicCollectionsPage> {
     if (userId == null) return;
     final collId = coll['id'];
     if (collId == null || _myCollectionIds.contains(collId)) return;
-    final url = Uri.parse('$BASE_URL/zzim/collections');
+    final url = Uri.parse('$BASE_URL/zzim/collections/$collId/favorite');
     final body = {
       'user_id': userId,
       'collection_name': coll['collection_name'],

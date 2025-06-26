@@ -106,14 +106,9 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
     if (userId == null) return;
     final collId = collection['id'];
     if (collId == null) return;
-    final url = Uri.parse('$BASE_URL/zzim/collections');
+    final url = Uri.parse('$BASE_URL/zzim/collections/$collId/favorite');
     final body = {
       'user_id': userId,
-      'collection_name': collection['collection_name'],
-      'description': collection['description'],
-      'thumbnail': collection['thumbnail'],
-      'is_public': false,
-      'favorite_from_collection_id': collId,
     };
     try {
       final resp = await http.post(url,

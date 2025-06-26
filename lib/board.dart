@@ -298,7 +298,7 @@ class _BoardPageState extends State<BoardPage> {
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'HOME'),
           BottomNavigationBarItem(icon: Icon(Icons.forum), label: '커뮤니티'),
           BottomNavigationBarItem(icon: Icon(Icons.favorite), label: '찜 목록'),
-          BottomNavigationBarItem(icon: Icon(Icons.event), label: 'EVENT'),
+          BottomNavigationBarItem(icon: Icon(Icons.message), label: '메시지'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'MY'),
         ],
       ),

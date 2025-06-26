@@ -29,6 +29,16 @@ class AdminPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text("관리자 대시보드"),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: '로그아웃',
+            onPressed: () {
+              Provider.of<UserProvider>(context, listen: false).clearUserData();
+              Navigator.pushReplacementNamed(context, '/login');
+            },
+          ),
+        ],
       ),
       body: ListView.separated(
         itemCount: _menus.length,

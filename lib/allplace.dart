@@ -117,146 +117,176 @@ class _AllplacePageState extends State<AllplacePage> {
 
         return StatefulBuilder(
           builder: (ctx, setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).viewInsets.bottom,
-                  left: 16,
-                  right: 16,
-                  top: 20),
-              child: SingleChildScrollView(
+            return FractionallySizedBox(
+              heightFactor: 0.8,
+              child: Padding(
+                padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom,
+                    left: 16,
+                    right: 16,
+                    top: 20),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TextField(
-                      decoration: const InputDecoration(
-                        labelText: '검색어',
-                        border: OutlineInputBorder(),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            TextField(
+                              decoration: const InputDecoration(
+                                labelText: '검색어',
+                                border: OutlineInputBorder(),
+                              ),
+                              onChanged: (v) => tempKeyword = v,
+                              controller:
+                                  TextEditingController(text: tempKeyword),
+                            ),
+                            const SizedBox(height: 16),
+                            DropdownButtonFormField<String>(
+                              decoration: const InputDecoration(
+                                labelText: '메인 카테고리',
+                                border: OutlineInputBorder(),
+                              ),
+                              value: tempMain,
+                              items: subCategoryMap.keys
+                                  .map((c) => DropdownMenuItem(
+                                      value: c, child: Text(c)))
+                                  .toList(),
+                              onChanged: (v) {
+                                if (v == null) return;
+                                setModalState(() {
+                                  tempMain = v;
+                                  tempSub = null;
+                                  tempSubOptions = subCategoryMap[tempMain]!;
+                                });
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            DropdownButtonFormField<String>(
+                              isExpanded: true,
+                              decoration: const InputDecoration(
+                                labelText: '세부 카테고리',
+                                border: OutlineInputBorder(),
+                              ),
+                              value: tempSub,
+                              items: tempSubOptions
+                                  .map((c) => DropdownMenuItem(
+                                      value: c, child: Text(c)))
+                                  .toList(),
+                              onChanged: (v) =>
+                                  setModalState(() => tempSub = v),
+                            ),
+                            const SizedBox(height: 24),
+                            ExpansionTile(
+                              title: const Text('누구와 함께?',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
+                              children: [
+                                SingleChildScrollView(
+                                  child: Wrap(
+                                    spacing: 8,
+                                    children: withWhoOptions.map((o) {
+                                      final sel = tempWith.contains(o);
+                                      return ChoiceChip(
+                                        label: Text(o),
+                                        selected: sel,
+                                        selectedColor: AppColors.accentLight,
+                                        onSelected: (_) {
+                                          setModalState(() {
+                                            if (sel)
+                                              tempWith.remove(o);
+                                            else
+                                              tempWith.add(o);
+                                          });
+                                        },
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                              ],
+                            ),
+                            ExpansionTile(
+                              title: const Text('목적',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
+                              children: [
+                                SingleChildScrollView(
+                                  child: Wrap(
+                                    spacing: 8,
+                                    children: purposeOptions.map((o) {
+                                      final sel = tempPur.contains(o);
+                                      return ChoiceChip(
+                                        label: Text(o),
+                                        selected: sel,
+                                        selectedColor: AppColors.accentLight,
+                                        onSelected: (_) {
+                                          setModalState(() {
+                                            if (sel)
+                                              tempPur.remove(o);
+                                            else
+                                              tempPur.add(o);
+                                          });
+                                        },
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                              ],
+                            ),
+                            ExpansionTile(
+                              title: const Text('분위기',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
+                              children: [
+                                SingleChildScrollView(
+                                  child: Wrap(
+                                    spacing: 8,
+                                    children: moodOptions.map((o) {
+                                      final sel = tempMood.contains(o);
+                                      return ChoiceChip(
+                                        label: Text(o),
+                                        selected: sel,
+                                        selectedColor: AppColors.accentLight,
+                                        onSelected: (_) {
+                                          setModalState(() {
+                                            if (sel)
+                                              tempMood.remove(o);
+                                            else
+                                              tempMood.add(o);
+                                          });
+                                        },
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                              ],
+                            ),
+                            const SizedBox(height: 32),
+                            Center(
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    searchKeyword = tempKeyword;
+                                    selectedMainCategory = tempMain;
+                                    selectedSubCategory = tempSub;
+                                    selectedWithWho = tempWith;
+                                    selectedPurpose = tempPur;
+                                    selectedMood = tempMood;
+                                  });
+                                  Navigator.pop(context);
+                                  _fetchRegisteredPlaces();
+                                },
+                                child: const Text('적용'),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                          ],
+                        ),
                       ),
-                      onChanged: (v) => tempKeyword = v,
-                      controller: TextEditingController(text: tempKeyword),
                     ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(
-                        labelText: '메인 카테고리',
-                        border: OutlineInputBorder(),
-                      ),
-                      value: tempMain,
-                      items: subCategoryMap.keys
-                          .map(
-                              (c) => DropdownMenuItem(value: c, child: Text(c)))
-                          .toList(),
-                      onChanged: (v) {
-                        if (v == null) return;
-                        setModalState(() {
-                          tempMain = v;
-                          tempSub = null;
-                          tempSubOptions = subCategoryMap[tempMain]!;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      isExpanded: true,
-                      decoration: const InputDecoration(
-                        labelText: '세부 카테고리',
-                        border: OutlineInputBorder(),
-                      ),
-                      value: tempSub,
-                      items: tempSubOptions
-                          .map(
-                              (c) => DropdownMenuItem(value: c, child: Text(c)))
-                          .toList(),
-                      onChanged: (v) => setModalState(() => tempSub = v),
-                    ),
-                    const SizedBox(height: 24),
-                    const Text('누구와 함께?',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      children: withWhoOptions.map((o) {
-                        final sel = tempWith.contains(o);
-                        return ChoiceChip(
-                          label: Text(o),
-                          selected: sel,
-                          selectedColor: AppColors.accentLight,
-                          onSelected: (_) {
-                            setModalState(() {
-                              if (sel)
-                                tempWith.remove(o);
-                              else
-                                tempWith.add(o);
-                            });
-                          },
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 24),
-                    const Text('목적',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      children: purposeOptions.map((o) {
-                        final sel = tempPur.contains(o);
-                        return ChoiceChip(
-                          label: Text(o),
-                          selected: sel,
-                          selectedColor: AppColors.accentLight,
-                          onSelected: (_) {
-                            setModalState(() {
-                              if (sel)
-                                tempPur.remove(o);
-                              else
-                                tempPur.add(o);
-                            });
-                          },
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 24),
-                    const Text('분위기',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      children: moodOptions.map((o) {
-                        final sel = tempMood.contains(o);
-                        return ChoiceChip(
-                          label: Text(o),
-                          selected: sel,
-                          selectedColor: AppColors.accentLight,
-                          onSelected: (_) {
-                            setModalState(() {
-                              if (sel)
-                                tempMood.remove(o);
-                              else
-                                tempMood.add(o);
-                            });
-                          },
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 32),
-                    Center(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            searchKeyword = tempKeyword;
-                            selectedMainCategory = tempMain;
-                            selectedSubCategory = tempSub;
-                            selectedWithWho = tempWith;
-                            selectedPurpose = tempPur;
-                            selectedMood = tempMood;
-                          });
-                          Navigator.pop(context);
-                          _fetchRegisteredPlaces();
-                        },
-                        child: const Text('적용'),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
                   ],
                 ),
               ),
