@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'user_provider.dart';
 import 'constants.dart';
 
@@ -59,34 +60,19 @@ class _SignupPageState extends State<SignupPage> {
   }
 
   // ✅ 회원가입 요청
-  Future<void> _signup() async {
-    try {
-      final response = await http.post(
-        Uri.parse("$BASE_URL/auth/signup"),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "nickname": _nicknameController.text,
-          "email": _emailController.text,
-          "password": _passwordController.text,
-          "name": _nameController.text,
-          "birth_date": _birthDateController.text, // "YYYY-MM-DD" 형식
-          "gender": _selectedGender, // ✅ 성별 추가
-        }),
-      );
-
-      final responseData = jsonDecode(response.body);
-
-      if (response.statusCode == 201) {
-        Provider.of<UserProvider>(context, listen: false)
-            .setUserData(responseData["user"]);
-        Navigator.pushReplacementNamed(context, "/login");
-      } else {
-        print("❌ 회원가입 실패: ${responseData["error"]}");
-      }
-    } catch (e) {
-      print("❌ 회원가입 요청 중 오류 발생: $e");
-    }
+Future<void> _signup() async {
+  try {
+    await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+    );
+    Navigator.pushReplacementNamed(context, '/login');
+  } on FirebaseAuthException catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('회원가입 실패: \${e.message}')),
+    );
   }
+}
 
   InputDecoration _inputDecoration(String hint) {
     return InputDecoration(
