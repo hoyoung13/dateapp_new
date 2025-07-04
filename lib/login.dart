@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'adminpage.dart';
 import 'user_provider.dart';
@@ -21,124 +22,22 @@ class _LoginPageState extends State<LoginPage> {
 
   // ✅ 일반 로그인 (이메일 & 비밀번호)
 
-  Future<void> _login() async {
-    try {
-      final response = await http.post(
-        Uri.parse("$BASE_URL/auth/login"),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "email": _emailController.text,
-          "password": _passwordController.text,
-        }),
-      );
 
-      print("📥 서버 응답 상태 코드: ${response.statusCode}");
-      print("📥 서버 응답 본문: ${response.body}");
-
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        print("✅ 로그인 성공: ${responseData["user"]}");
-
-        // 1) Provider에 사용자 데이터 저장 (기존대로)
-        final userProvider = Provider.of<UserProvider>(context, listen: false);
-        await userProvider.setUserData(responseData["user"]);
-        // ─────────────────────────────────────────────────────────────────
-        // ★★★ 여기까지는 기존 코드와 동일합니다. ★★★
-        // ─────────────────────────────────────────────────────────────────
-
-        // 2) SharedPreferences에 “로그인 상태” 저장
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool("isLoggedIn", true);
-        await prefs.setInt("user_id", responseData["user"]["id"]);
-        if (responseData["token"] != null) {
-          await prefs.setString("token", responseData["token"]);
-        }
-        // ─────────────────────────────────────────────────────────────────
-        // ─── 이 아래부터 “isAdmin 분기”를 추가해야 합니다. ───
-        // ─────────────────────────────────────────────────────────────────
-
-        // 3) 서버 응답에서 isAdmin을 꺼내서 저장
-        final userJson = responseData["user"] as Map<String, dynamic>;
-        final bool isAdmin = (userJson["isAdmin"] == true);
-        await prefs.setBool("is_admin", isAdmin);
-
-        // 4) isAdmin 여부에 따라 서로 다른 페이지로 이동
-        if (isAdmin) {
-          // ▷ 관리자라면 '/admin_dashboard' (예시 라우트)로 이동
-          Navigator.pushReplacementNamed(context, '/admin');
-        } else {
-          // ▷ 일반 사용자라면 기존 홈('/home')으로 이동
-          Navigator.pushReplacementNamed(context, '/home');
-        }
-
-        return; // 이 시점에서 함수 종료
-        // ─────────────────────────────────────────────────────────────────
-        // ─── “isAdmin 분기” 처리 끝 ────────────────────────────────────
-        // ─────────────────────────────────────────────────────────────────
-      } else {
-        final responseData = jsonDecode(response.body);
-        print("❌ 로그인 실패: ${responseData["error"]}");
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("로그인 실패: ${responseData["error"]}")),
-        );
-      }
-    } catch (e) {
-      print("❌ 로그인 요청 중 오류 발생: $e");
-    }
+Future<void> _login() async {
+  try {
+    await FirebaseAuth.instance.signInWithEmailAndPassword(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+    );
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isLoggedIn', true);
+    Navigator.pushReplacementNamed(context, '/home');
+  } on FirebaseAuthException catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('로그인 실패: \${e.message}')),
+    );
   }
-
-  /*Future<void> _login() async {
-    try {
-      final response = await http.post(
-        Uri.parse("$BASE_URL/auth/login"),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "email": _emailController.text,
-          "password": _passwordController.text,
-        }),
-      );
-
-      print("📥 서버 응답 상태 코드: ${response.statusCode}");
-      print("📥 서버 응답 본문: ${response.body}");
-
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        final userProvider = Provider.of<UserProvider>(context, listen: false);
-        Map<String, dynamic> userData = responseData["user"];
-        userData["profile_image"] = userData["profile_image"] ?? "";
-
-        print("✅ 로그인 성공: ${responseData["user"]}");
-        await userProvider.setUserData(userData);
-        if (userData["id"] != null) {
-          await userProvider.fetchUserProfile(userData["id"]);
-        } else {
-          print("❌ userId가 null이므로 fetchUserProfile 호출을 건너뜁니다.");
-        }
-        // ✅ SharedPreferences에 로그인 정보 저장 (자동 로그인)
-        final prefs = await SharedPreferences.getInstance();
-
-        await prefs.setBool("isLoggedIn", true);
-        await prefs.setInt("user_id", userData["id"]);
-        await prefs.setString("nickname", userData["nickname"] ?? "");
-        await prefs.setString("email", userData["email"] ?? "");
-        await prefs.setString("profile_image", userData["profile_image"]);
-        await prefs.setString(
-            "birth_date", responseData["user"]["birth_date"] ?? "");
-
-        // 홈 화면으로 이동
-        Navigator.pushReplacementNamed(context, '/home');
-      } else {
-        final responseData = jsonDecode(response.body);
-        print("❌ 로그인 실패: ${responseData["error"]}");
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("로그인 실패: ${responseData["error"]}")),
-        );
-      }
-    } catch (e) {
-      print("❌ 로그인 요청 중 오류 발생: $e");
-    }
-  }
-*/
+}
   //카카오 로그인 및 users테이블에 집어넣기
   Future<void> _kakaoLogin() async {
     try {
